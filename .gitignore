@@ -1,0 +1,19 @@
+# build artifacts & dependencies
+dist/
+node_modules/
+.astro/
+
+# local agent/tooling config (not part of the template)
+.claude/
+.agents/
+skills-lock.json
+
+# local env / secrets
+.env
+
+# root-level dev screenshots
+/*.png
+
+# os cruft
+.DS_Store
+Thumbs.db

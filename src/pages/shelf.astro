@@ -1,0 +1,197 @@
+---
+// bookshelf archive — browse every post by main tag, or by time.
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { tagColor } from '../lib/tags';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+
+// spine thickness + height from body length — longer post = thicker & taller book
+const BOOK_SCALE = 0.68;
+const lenMax = Math.max(1, ...posts.map((p) => (p.body?.length ?? 0)));
+const thickness = (len: number) => ((12 + (len / lenMax) * 26) * BOOK_SCALE).toFixed(1);
+const height = (len: number) => Math.round(50 + (len / lenMax) * 12);
+---
+
+<Base title="helmarchive · shelf">
+  <section class="v-d">
+    <div class="shelf-head">
+      <div class="shelf-toggle" id="shelf-toggle">
+        <button data-shelf="time" class="is-active">by date</button>
+        <button data-shelf="tag">by tag</button>
+      </div>
+    </div>
+
+    {/* one persistent set of books; JS relays them between layouts with a FLIP so each
+        book flies from its old spot to its new one when switching modes. default = time. */}
+    <div class="shelves" id="shelf-root" data-mode="time">
+      <div class="shelf">
+        <div class="books">
+          {posts.map((p, i) => (
+            <a class="book" data-id={p.id} data-tag={p.data.tags[0] ?? ''} data-idx={i}
+              href={`/posts/${p.id}`}
+              style={`--c:${tagColor(p.data.tags[0] ?? '')};--w:${thickness(p.body?.length ?? 0)}px;--h:${height(p.body?.length ?? 0)}px`}>
+              <span class="tip">{p.data.title}</span>
+            </a>
+          ))}
+        </div>
+        <div class="board"></div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // FLIP bookshelf: books are a single persistent node set. Switching mode rearranges them
+  // (one row by date, or grouped rows by tag) and animates each from old → new position.
+  const root = document.getElementById('shelf-root');
+  const toggle = document.getElementById('shelf-toggle');
+  if (root && toggle) {
+    const books = Array.from(root.querySelectorAll('.book')) as HTMLElement[];
+    const buttons = toggle.querySelectorAll('button');
+
+    const setActive = (mode: string) =>
+      buttons.forEach((b) => b.classList.toggle('is-active', b.dataset.shelf === mode));
+    const byIdx = (a: HTMLElement, b: HTMLElement) => +a.dataset.idx! - +b.dataset.idx!;
+
+    // build a bare shelf row (.books wrapper + .board); book color alone signals the tag
+    const row = () => {
+      const shelf = document.createElement('div'); shelf.className = 'shelf';
+      const inner = document.createElement('div'); inner.className = 'books';
+      const board = document.createElement('div'); board.className = 'board';
+      shelf.append(inner, board);
+      return { shelf, inner };
+    };
+
+    const layoutTime = () => {
+      const { shelf, inner } = row();
+      [...books].sort(byIdx).forEach((b) => inner.appendChild(b));
+      root!.replaceChildren(shelf);
+      root!.dataset.mode = 'time';
+    };
+
+    const layoutTag = () => {
+      const groups = new Map<string, HTMLElement[]>();
+      for (const b of books) {
+        const t = b.dataset.tag || '∅';
+        if (!groups.has(t)) groups.set(t, []);
+        groups.get(t)!.push(b);
+      }
+      // tag order: most books first, then earliest book — stable & matches /tags
+      const order = [...groups.entries()].sort(
+        (a, b) =>
+          b[1].length - a[1].length ||
+          Math.min(...a[1].map((x) => +x.dataset.idx!)) - Math.min(...b[1].map((x) => +x.dataset.idx!))
+      );
+      const frag = document.createDocumentFragment();
+      for (const [, arr] of order) {
+        arr.sort(byIdx);
+        const { shelf, inner } = row();
+        arr.forEach((b) => inner.appendChild(b));
+        frag.append(shelf);
+      }
+      root!.replaceChildren(frag);
+      root!.dataset.mode = 'tag';
+    };
+
+    // ponytail: classic FLIP — read old rects, rearrange, jump each book back to its old spot
+    // (transition:none), then release to its new spot with a per-book stagger so they cascade.
+    const flip = (rearrange: () => void) => {
+      const first = new Map(books.map((b) => [b, b.getBoundingClientRect()]));
+      rearrange();
+      for (const b of books) {
+        const f = first.get(b)!, l = b.getBoundingClientRect();
+        b.style.transition = 'none';
+        b.style.transform = `translate(${f.left - l.left}px,${f.top - l.top}px)`;
+      }
+      void root!.offsetHeight; // force reflow so the jump paints before we release
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          let i = 0;
+          for (const b of books) {
+            b.style.transitionDelay = `${Math.min(i++, 16) * 30}ms`;
+            b.style.setProperty('--fd', '.8s');
+            b.style.transition = '';
+            b.style.transform = '';
+          }
+          setTimeout(
+            () => books.forEach((b) => { b.style.transitionDelay = ''; b.style.setProperty('--fd', ''); }),
+            1400
+          );
+        })
+      );
+    };
+
+    const apply = (mode: 'tag' | 'time', animate: boolean) => {
+      if (mode === root!.dataset.mode) return;
+      const rearrange = mode === 'tag' ? layoutTag : layoutTime;
+      if (animate) flip(rearrange);
+      else rearrange();
+      setActive(mode);
+      const u = new URL(location.href);
+      u.searchParams.set('shelf', mode);
+      history.replaceState(null, '', u);
+    };
+
+    const initial = new URLSearchParams(location.search).get('shelf') === 'tag' ? 'tag' : 'time';
+    apply(initial, false);
+    buttons.forEach((btn) =>
+      btn.addEventListener('click', () => apply(btn.dataset.shelf as 'tag' | 'time', true))
+    );
+  }
+</script>
+
+<style is:global>
+  .v-d .shelf-head { display: flex; justify-content: flex-end; margin: -0.75rem 0 1.25rem; }
+  .shelf-toggle { display: inline-flex; gap: 0.25rem; padding: 0.2rem; background: transparent; border: 1px solid var(--rp-overlay); border-radius: 999px; transform: scale(0.9); transform-origin: right center; }
+  .shelf-toggle button { background: transparent; border: none; color: var(--rp-muted); font-size: 0.82rem; padding: 0.25rem 0.7rem; border-radius: 999px; cursor: pointer; font-family: inherit; }
+  .shelf-toggle button.is-active { background: var(--rp-overlay); color: var(--rp-text); }
+
+  .shelves { display: flex; flex-direction: column; gap: 1.25rem; border: 1px solid var(--rp-overlay); border-radius: 8px; padding: 1rem 0.6rem 0.8rem; }
+  .shelf { display: flex; flex-direction: column; }
+  .books { display: flex; align-items: flex-end; gap: 3px; min-height: 64px; padding: 0 0.5rem; }
+
+  /* line-drawing minimal book: colored hairline outline, faint tint, open bottom sitting on the board.
+     --fd swaps the transform duration slow (FLIP) ↔ fast (hover). */
+  .book {
+    flex: 0 0 auto;
+    position: relative;
+    width: var(--w, 15px);
+    height: var(--h, 57px);
+    background: color-mix(in srgb, var(--c, var(--rp-subtle)) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c, var(--rp-subtle)) 78%, transparent);
+    border-bottom: none;
+    border-radius: 1.5px 1.5px 0 0;
+    opacity: 0.95;
+    text-decoration: none;
+    transition: transform var(--fd, 0.14s) cubic-bezier(.2,.8,.2,1), filter 0.14s ease, opacity 0.14s ease, background 0.14s ease;
+  }
+  .book:hover { transform: translateY(-5px); filter: brightness(1.25); opacity: 1; background: color-mix(in srgb, var(--c, var(--rp-subtle)) 20%, transparent); }
+  .book:hover .tip { opacity: 1; transform: translate(-50%, -4px); }
+
+  .tip {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translate(-50%, 0);
+    background: var(--rp-overlay);
+    color: var(--rp-text);
+    border: 1px solid var(--rp-subtle);
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.78rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    max-width: 16rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+  .board { height: 1px; background: var(--rp-subtle); opacity: 0.4; }
+</style>

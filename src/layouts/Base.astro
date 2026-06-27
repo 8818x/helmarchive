@@ -1,0 +1,67 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+// active nav link: which top-level section the current page belongs to
+const path = Astro.url.pathname;
+const onShelf = path.startsWith('/shelf');
+const onTags = path.startsWith('/tags');
+---
+
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/">helmarchive</a>
+      <nav class="topnav">
+        <a class:list={['explore', { active: onShelf }]} href="/shelf">bookshelf</a>
+        <a class:list={['explore', { active: onTags }]} href="/tags">tags</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <div id="mention-pop" hidden role="tooltip"><img alt="" /><p class="pop-info"></p></div>
+    <script>
+      // image popover for [[entity]] mentions carrying an image — singleton, pointer-events:none,
+      // box height is deterministic before <img> bytes load (img has fixed height); flips below near the top edge.
+      const pop = document.getElementById('mention-pop');
+      const img = pop && pop.querySelector('img');
+      const info = pop && pop.querySelector('.pop-info');
+      if (pop && img) {
+        const hit = (t) => (t instanceof Element ? t.closest('.mention[data-image]') : null);
+        const show = (el) => {
+          img.src = el.dataset.image;
+          img.alt = el.textContent || '';
+          if (info) { info.textContent = el.dataset.info || ''; info.hidden = !el.dataset.info; }
+          pop.hidden = false;
+          const r = el.getBoundingClientRect(), w = pop.offsetWidth || 180, h = pop.offsetHeight || 180, m = 8;
+          let left = Math.max(m, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - m));
+          let top = r.top - h - m;
+          if (top < m) top = r.bottom + m;
+          pop.style.left = left + 'px';
+          pop.style.top = top + 'px';
+        };
+        const hide = () => { pop.hidden = true; };
+        document.addEventListener('mouseover', (e) => { const el = hit(e.target); if (el) show(el); });
+        document.addEventListener('mouseout', (e) => { const el = hit(e.target); if (el && !pop.hidden) hide(); });
+        document.addEventListener('focusin', (e) => { const el = hit(e.target); if (el) show(el); });
+        document.addEventListener('focusout', (e) => { const el = hit(e.target); if (el && !pop.hidden) hide(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+      }
+    </script>
+  </body>
+</html>

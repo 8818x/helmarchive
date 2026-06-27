@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { parseMentions, resolve } from '../../lib/wikilinks';
+
+export async function getStaticPaths() {
+  const [entities, posts] = await Promise.all([getCollection('entities'), getCollection('posts')]);
+  return entities.map((entity) => ({
+    params: { id: entity.id },
+    props: {
+      entity,
+      // backlinks: posts whose body mentions this entity (by slug or name).
+      // ponytail: raw-body regex scan — a [[x]] inside a code fence would false-positive;
+      // rare enough to ignore, upgrade to AST scan only if it bites.
+      backlinks: posts
+        .filter((p) =>
+          parseMentions(p.body ?? '').some((m) => m.mention && resolve(m.mention.target)?.slug === entity.id)
+        )
+        .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+    },
+  }));
+}
+
+const { entity, backlinks } = Astro.props;
+const e = entity.data;
+---
+
+<Base title={`${e.name} · helmarchive`}>
+  <article class="entity">
+    {e.image && <img src={e.image} alt={e.name} />}
+    <h1>{e.name}</h1>
+    {e.kind && <p class="kind">{e.kind}</p>}
+    {e.blurb && <p class="blurb">{e.blurb}</p>}
+    {e.url && <a class="official" href={e.url} rel="nofollow noopener">Official site ↗</a>}
+
+    <section class="backlinks">
+      <h2>{backlinks.length ? `Mentioned in ${backlinks.length}` : 'Not mentioned yet'}</h2>
+      {backlinks.length > 0 && (
+        <ul>
+          {backlinks.map((p) => (
+            <li>
+              <a href={`/posts/${p.id}`}>{p.data.title}</a>
+              <time>{p.data.date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  </article>
+</Base>
+
+<style>
+  .entity img { max-width: 100%; max-height: 14rem; border-radius: 0.5rem; }
+  .entity h1 { margin: 0.75rem 0 0; }
+  .kind { color: var(--rp-subtle); font-size: 0.9rem; margin: 0.25rem 0 1rem; }
+  .blurb { font-size: 1.05rem; line-height: 1.6; max-width: 42rem; }
+  .official { display: inline-block; margin-top: 1rem; color: var(--link); }
+  .backlinks { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+  .backlinks ul { list-style: none; padding: 0; }
+  .backlinks li { padding: 0.4rem 0; }
+  .backlinks time { color: var(--rp-subtle); font-size: 0.85rem; margin-left: 0.6rem; }
+</style>

@@ -1,0 +1,18 @@
+---
+// homepage — just the latest entry.
+import Base from '../layouts/Base.astro';
+import Post from '../components/Post.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const latest = posts[0]; // ponytail: ≥1 post assumed
+---
+<Base title="helmarchive">
+  <p class="kicker">latest in bookshelf</p>
+  <Post post={latest} />
+</Base>
+<style>
+  .kicker { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 600; color: var(--rp-subtle); margin: 0 0 1rem; }
+</style>

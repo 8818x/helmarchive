@@ -1,0 +1,53 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { tagColor } from '../lib/tags';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+// other posts sharing at least one tag — computed free, no extra frontmatter
+const all = await getCollection('posts');
+const related = all
+  .filter((p) => p.id !== post.id && p.data.tags.some((t) => post.data.tags.includes(t)))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+---
+
+<article>
+  <h1>{post.data.title}</h1>
+  <time>{post.data.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
+  <ul class="inline-tags">
+    {post.data.tags.map((t) => <li><a href={`/tags/${encodeURIComponent(t)}`} style={`--c:${tagColor(t)}`}>{t}</a></li>)}
+  </ul>
+
+  <div class="content">
+    <Content />
+  </div>
+
+  {post.data.source && (
+    <p class="source">Written on <a href={post.data.source} rel="nofollow noopener">Facebook</a></p>
+  )}
+
+  {post.data.references.length > 0 && (
+    <section class="references">
+      <h2>References</h2>
+      <ul>
+        {post.data.references.map((r) => (
+          <li><a href={r.url} rel="nofollow noopener">{r.label}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {related.length > 0 && (
+    <section class="related">
+      <h2>Related</h2>
+      <ul class="post-list">
+        {related.map((p) => <li><a href={`/posts/${p.id}`}>{p.data.title}</a></li>)}
+      </ul>
+    </section>
+  )}
+</article>
