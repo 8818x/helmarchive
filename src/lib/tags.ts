@@ -6,5 +6,6 @@ const TAG_COLOR: Record<string, string> = {
 };
 
 export function tagColor(tag: string): string {
-    return TAG_COLOR[tag] ?? 'var(--rp-subtle)';
+    // case-insensitive: frontmatter may say "Game" / "GAME"; the key is lowercase.
+    return TAG_COLOR[tag.toLowerCase()] ?? 'var(--rp-subtle)';
 }

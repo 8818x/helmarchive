@@ -1,11 +1,11 @@
 // ponytail: remark plugin — turns [[target|label]] mentions into hover-card links,
-// resolved against src/entities/*.md at build time. Zero deps; reads files synchronously
+// resolved against src/entities/**/*.md at build time. Zero deps; reads files synchronously
 // (cached once per build). Flat `key: value` frontmatter only — upgrade to real YAML if
 // entities ever need structured fields.
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 
-type Entity = { slug: string; name: string; kind?: string; blurb?: string; url?: string; image?: string };
+type Entity = { slug: string; name: string; full_name?: string; kind?: string; blurb?: string; url?: string; image?: string };
 
 function parseFrontmatter(raw: string): Record<string, string> {
     const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -27,11 +27,12 @@ function entityMap(): Map<string, Entity> {
     cache = new Map();
     const dir = join(process.cwd(), 'src/entities');
     if (!existsSync(dir)) return cache;
-    for (const f of readdirSync(dir)) {
+    // recursive read → entities may be grouped in subfolders; slug = filename, folder-agnostic.
+    for (const f of readdirSync(dir, { recursive: true })) {
         if (!f.endsWith('.md')) continue;
         const fm = parseFrontmatter(readFileSync(join(dir, f), 'utf8'));
-        const slug = f.slice(0, -3);
-        const e: Entity = { slug, name: fm.name ?? slug, kind: fm.kind, blurb: fm.blurb, url: fm.url, image: fm.image };
+        const slug = basename(f, '.md');
+        const e: Entity = { slug, name: fm.name ?? slug, full_name: fm.full_name, kind: fm.kind, blurb: fm.blurb, url: fm.url, image: fm.image };
         cache.set(slug.toLowerCase(), e);
         cache.set(e.name.toLowerCase(), e); // resolve by name OR slug
     }
@@ -57,6 +58,29 @@ export function parseMentions(text: string) {
     return out;
 }
 
+// ponytail: hand-parse PNG/JPG dimensions (no dep) so the popover can match the image's aspect
+// ratio — area == image → cover is an exact fit (no crop, no letterbox) and box height is set
+// before the bytes load. Files live in public/ (astro serves it at root).
+function imageAspect(file: string): number | undefined {
+    let buf: Buffer;
+    try { buf = readFileSync(file); } catch { return; }
+    let w: number | undefined, h: number | undefined;
+    if (buf.length > 24 && buf[0] === 0x89 && buf[1] === 0x50) {            // PNG: IHDR @ 16
+        w = buf.readUInt32BE(16); h = buf.readUInt32BE(20);
+    } else if (buf.length > 4 && buf[0] === 0xff && buf[1] === 0xd8) {      // JPG: scan for SOF
+        let i = 2;
+        while (i + 8 < buf.length) {
+            if (buf[i] !== 0xff) break;
+            const marker = buf[i + 1];
+            if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+                h = buf.readUInt16BE(i + 5); w = buf.readUInt16BE(i + 7); break;
+            }
+            i += 2 + buf.readUInt16BE(i + 2);
+        }
+    }
+    return w && h ? w / h : undefined;
+}
+
 function mentionNode({ target, label }: { target: string; label: string }) {
     const e = resolve(target);
     if (!e) {
@@ -67,14 +91,17 @@ function mentionNode({ target, label }: { target: string; label: string }) {
         };
     }
     // click a mention → the entity's hub page (/entities/[slug]: backlinks + official link).
-    // hover: image entity → JS image popover (data-image) + basic info caption (data-info); text entity → CSS card (data-card).
-    const hProperties: Record<string, unknown> = { className: ['mention'] };
-    const info = [e.name, e.kind, e.blurb].filter(Boolean).join(' · ');
+    // hover → JS profile card (#mention-pop) fed by structured data-* tiers, same path for every
+    // entity: name (title) · sub (full_name + kind) · blurb (body); image optional. ponytail: one
+    // render path beats two — the old text-only CSS ::after tooltip folded into this.
+    const hProperties: Record<string, unknown> = { className: ['mention'], 'data-name': e.name };
+    const sub = [e.full_name, e.kind].filter(Boolean).join(' · ');
+    if (sub) hProperties['data-sub'] = sub;
+    if (e.blurb) hProperties['data-blurb'] = e.blurb;
     if (e.image) {
         hProperties['data-image'] = e.image;
-        if (info) hProperties['data-info'] = info;
-    } else {
-        hProperties['data-card'] = info;
+        const ar = imageAspect(join(process.cwd(), 'public', e.image));
+        if (ar) hProperties['data-aspect'] = String(Math.round(ar * 1000) / 1000);
     }
     return { type: 'link', url: `/entities/${e.slug}`, title: null, data: { hProperties }, children: [{ type: 'text', value: label }] };
 }

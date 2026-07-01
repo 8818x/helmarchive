@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { Icon } from 'astro-icon/components';
 
 interface Props {
   title: string;
@@ -22,45 +23,133 @@ const onTags = path.startsWith('/tags');
       rel="stylesheet"
     />
     <title>{title}</title>
+    <script is:inline>
+      // set theme before paint to avoid a flash. rose-pine is the default; light/dark
+      // are stored in localStorage. runs synchronously in <head> ahead of first paint.
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="/">helmarchive</a>
-      <nav class="topnav">
-        <a class:list={['explore', { active: onShelf }]} href="/shelf">bookshelf</a>
-        <a class:list={['explore', { active: onTags }]} href="/tags">tags</a>
-      </nav>
+      <div class="topright">
+        <nav class="topnav">
+          <a class:list={['explore', { active: onShelf }]} href="/shelf">bookshelf</a>
+          <a class:list={['explore', { active: onTags }]} href="/tags">tags</a>
+        </nav>
+        <details class="themetog">
+          <summary class="themetog-btn" aria-label="เปลี่ยนธีม" title="ธีม">
+            <Icon name="lucide:sun" />
+          </summary>
+          <div class="themetog-menu">
+            <button type="button" data-theme-set="rose-pine">rose pine <span class="check" aria-hidden="true">✓</span></button>
+            <button type="button" data-theme-set="dark">dark <span class="check" aria-hidden="true">✓</span></button>
+            <button type="button" data-theme-set="light">light <span class="check" aria-hidden="true">✓</span></button>
+          </div>
+        </details>
+      </div>
     </header>
     <main>
       <slot />
     </main>
-    <div id="mention-pop" hidden role="tooltip"><img alt="" /><p class="pop-info"></p></div>
+    <div id="mention-pop" role="tooltip">
+      <img alt="" />
+      <div class="pop-meta">
+        <div class="pop-name"></div>
+        <div class="pop-sub"></div>
+        <div class="pop-blurb"></div>
+      </div>
+    </div>
     <script>
-      // image popover for [[entity]] mentions carrying an image — singleton, pointer-events:none,
-      // box height is deterministic before <img> bytes load (img has fixed height); flips below near the top edge.
+      // profile card for [[entity]] mentions — singleton, pointer-events:none. structured tiers
+      // (name/sub/blurb) + optional image; box height is deterministic before <img> bytes load
+      // (fixed css height, hidden when no image). flips below near the top edge.
       const pop = document.getElementById('mention-pop');
       const img = pop && pop.querySelector('img');
-      const info = pop && pop.querySelector('.pop-info');
-      if (pop && img) {
-        const hit = (t) => (t instanceof Element ? t.closest('.mention[data-image]') : null);
+      const nameEl = pop && pop.querySelector('.pop-name');
+      const subEl = pop && pop.querySelector('.pop-sub');
+      const blurbEl = pop && pop.querySelector('.pop-blurb');
+      if (pop && img && nameEl && subEl && blurbEl) {
+        const hit = (t) => (t instanceof Element ? t.closest('.mention[data-name]') : null);
         const show = (el) => {
-          img.src = el.dataset.image;
+          const hasImg = !!el.dataset.image;
+          const isLogo = hasImg && /\.png$/i.test(el.dataset.image || '');
+          if (hasImg) img.src = el.dataset.image;
           img.alt = el.textContent || '';
-          if (info) { info.textContent = el.dataset.info || ''; info.hidden = !el.dataset.info; }
-          pop.hidden = false;
-          const r = el.getBoundingClientRect(), w = pop.offsetWidth || 180, h = pop.offsetHeight || 180, m = 8;
+          pop.classList.toggle('has-img', hasImg);
+          pop.classList.toggle('is-logo', isLogo);
+          // photos match the image's own aspect (--ar) → cover = exact fit (whole image shows);
+          // cap height at 220 so portrait cards stay modest — the card narrows with the image.
+          // logos use the fixed plate. (12rem = 204px.)
+          if (!isLogo && el.dataset.aspect) {
+            pop.style.setProperty('--ar', el.dataset.aspect);
+            const ar = parseFloat(el.dataset.aspect);
+            pop.style.width = (ar * 220 < 204 ? Math.round(ar * 220) : 204) + 'px';
+          } else {
+            pop.style.removeProperty('--ar');
+            pop.style.width = '';
+          }
+          nameEl.textContent = el.dataset.name || '';
+          nameEl.hidden = !el.dataset.name;
+          subEl.textContent = el.dataset.sub || '';
+          subEl.hidden = !el.dataset.sub;
+          blurbEl.textContent = el.dataset.blurb || '';
+          blurbEl.hidden = !el.dataset.blurb;
+          const r = el.getBoundingClientRect(), w = pop.offsetWidth || 204, h = pop.offsetHeight || 190, m = 8;
           let left = Math.max(m, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - m));
           let top = r.top - h - m;
-          if (top < m) top = r.bottom + m;
+          let below = false;
+          if (top < m) { top = r.bottom + m; below = true; }
           pop.style.left = left + 'px';
           pop.style.top = top + 'px';
+          pop.classList.toggle('is-below', below);
+          pop.classList.add('is-open');
         };
-        const hide = () => { pop.hidden = true; };
+        const hide = () => { pop.classList.remove('is-open'); };
+        const on = () => pop.classList.contains('is-open');
         document.addEventListener('mouseover', (e) => { const el = hit(e.target); if (el) show(el); });
-        document.addEventListener('mouseout', (e) => { const el = hit(e.target); if (el && !pop.hidden) hide(); });
+        document.addEventListener('mouseout', (e) => { const el = hit(e.target); if (el && on()) hide(); });
         document.addEventListener('focusin', (e) => { const el = hit(e.target); if (el) show(el); });
-        document.addEventListener('focusout', (e) => { const el = hit(e.target); if (el && !pop.hidden) hide(); });
+        document.addEventListener('focusout', (e) => { const el = hit(e.target); if (el && on()) hide(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+      }
+    </script>
+    <script>
+      // theme switch — <details>/summary disclosure (native toggle + keyboard) holding three
+      // buttons. we add only what <details> lacks: click-outside close, Escape close, focus
+      // return, and the current-theme checkmark. rose-pine = default (no attr = :root).
+      const root = document.documentElement;
+      const tog = document.querySelector('.themetog');
+      if (tog) {
+        const summary = tog.querySelector('summary');
+        const buttons = tog.querySelectorAll('[data-theme-set]');
+        const sync = () => {
+          const cur = root.dataset.theme || 'rose-pine';
+          buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.themeSet === cur)));
+        };
+        buttons.forEach((b) =>
+          b.addEventListener('click', () => {
+            const t = b.dataset.themeSet;
+            if (t === 'rose-pine') delete root.dataset.theme;
+            else root.dataset.theme = t;
+            try { localStorage.setItem('theme', t); } catch (e) {}
+            sync();
+            tog.open = false;
+            summary.focus();
+          })
+        );
+        document.addEventListener('click', (e) => {
+          if (tog.open && !tog.contains(e.target)) tog.open = false;
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && tog.open) { tog.open = false; summary.focus(); }
+        });
+        sync();
       }
     </script>
   </body>

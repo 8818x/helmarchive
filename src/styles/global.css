@@ -21,6 +21,42 @@
     --link: var(--rp-iris);
     --line: var(--rp-overlay);
     --chip: var(--rp-surface);
+
+    /* motion — custom ease-out; built-in ease reads sluggish on the entry frame */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* themes — dark & light remap the --rp-* primitives. the semantic aliases above
+   (--fg/--bg/…) resolve against them lazily, so every var(--rp-*) reference in the rest
+   of the stylesheet adapts with no further edits. each theme gets its OWN link accent
+   (iris) so entity/mention links visibly change between themes, not just the bg. no
+   [data-theme='rose-pine'] rule is needed — :root already IS rose-pine, so setting that
+   value is a clean no-op fallback. */
+[data-theme='dark'] {
+    color-scheme: dark;
+    --rp-base: #111317;
+    --rp-surface: #181b21;
+    --rp-overlay: #21252e;
+    --rp-muted: #6b7280;
+    --rp-subtle: #9aa3b2;
+    --rp-text: #e6e8eb;
+    --rp-iris: #2573dd; /* wiki link */
+    --rp-gold: rgba(255, 94, 210, 0.87); /* url / content link */
+}
+
+[data-theme='light'] {
+    color-scheme: light;
+    --rp-base: #ffffff;
+    --rp-surface: #ffffff;
+    --rp-overlay: #e7e3dc;
+    --rp-muted: #75716a;
+    --rp-subtle: #55524b;
+    --rp-text: #2a2722;
+    --rp-iris: #0259DD; /* wiki link */
+    --rp-pine: #2a6478;
+    --rp-rose: #bf7674;
+    --rp-gold: #FF6648; /* url / content link */
+    --rp-love: #c93d63;
 }
 
 * {
@@ -83,11 +119,150 @@ body {
     gap: 1.25rem;
 }
 
+/* topbar right cluster: nav links + theme toggle, center-aligned so the icon sits level
+   with the text while the text keeps its baseline against the brand. */
+.topright {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+/* theme dropdown — icon trigger (sun) + a <details>/summary disclosure. muted at rest like
+   the .explore nav links; the open state lifts it onto the surface tone. */
+.themetog {
+    position: relative;
+}
+
+.themetog-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--rp-subtle);
+    cursor: pointer;
+    list-style: none;
+    transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out), border-color 0.15s var(--ease-out), transform 0.1s var(--ease-out);
+}
+
+.themetog-btn::-webkit-details-marker {
+    display: none;
+}
+
+.themetog-btn:hover {
+    color: var(--fg);
+    background: var(--rp-surface);
+}
+
+.themetog-btn:focus-visible {
+    outline: 2px solid var(--rp-iris);
+    outline-offset: 1px;
+}
+
+.themetog-btn:active {
+    transform: scale(0.96);
+}
+
+.themetog[open] .themetog-btn {
+    color: var(--fg);
+    background: var(--rp-surface);
+    border-color: var(--line);
+}
+
+.themetog-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+/* menu panel — surface + hairline border + a soft shadow (carries depth on light; the
+   border carries it on dark where shadows read weak). anchored top-right under the icon. */
+.themetog-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    min-width: 8.5rem;
+    padding: 0.3rem;
+    background: var(--rp-surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* keyframe (not transition): <details> goes display:none → shown on open, so only an
+   animation fires on the entry frame, a transition would not. origin = the trigger. */
+.themetog[open] .themetog-menu {
+    animation: togpop 0.14s var(--ease-out);
+}
+
+@keyframes togpop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.themetog-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 0;
+    background: transparent;
+    color: var(--rp-subtle);
+    font-family: inherit;
+    font-size: 0.85rem;
+    text-align: left;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+}
+
+.themetog-menu button:hover,
+.themetog-menu button:focus-visible {
+    background: var(--rp-overlay);
+    color: var(--fg);
+    outline: none;
+}
+
+.themetog-menu button[aria-current='true'] {
+    color: var(--fg);
+    font-weight: 600;
+}
+
+.themetog-menu .check {
+    margin-left: auto;
+    padding-left: 0.75rem;
+    color: var(--rp-iris);
+    opacity: 0;
+}
+
+.themetog-menu button[aria-current='true'] .check {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .themetog[open] .themetog-menu {
+        animation: none;
+    }
+    .themetog-btn,
+    .themetog-menu button {
+        transition-property: background-color, color, border-color !important;
+    }
+    .themetog-btn:active {
+        transform: none !important;
+    }
+}
+
 main {
     max-width: var(--maxw);
     margin: 0 auto;
     padding: 2.25rem 1.5rem 4rem;
 }
+
+/* site footer removed — theme switcher moved into the topbar (icon dropdown). */
 
 a {
     color: var(--link);
@@ -150,14 +325,17 @@ time {
     border-top: 3px solid var(--c);
     color: var(--fg);
     text-decoration: none;
-    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    transition: transform 0.18s var(--ease-out), background 0.18s var(--ease-out), border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
 }
 
-.tag-card:hover {
+.tag-card:hover,
+.tag-card:focus-visible {
     transform: translateY(-3px);
     background: color-mix(in srgb, var(--c) 12%, var(--rp-surface));
     border-color: color-mix(in srgb, var(--c) 45%, var(--line));
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--c) 18%, transparent);
+    /* layered: a near-contact shadow grounds the lift, the colored glow carries it */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 14px 30px color-mix(in srgb, var(--c) 16%, transparent);
+    outline: none;
 }
 
 .tag-card .tname {
@@ -202,10 +380,11 @@ time {
     border-radius: 999px;
     background: color-mix(in srgb, var(--c) 12%, var(--rp-surface));
     border: 1px solid color-mix(in srgb, var(--c) 32%, transparent);
-    transition: background 0.15s ease;
+    transition: background 0.15s var(--ease-out);
 }
 
-.inline-tags a:hover {
+.inline-tags a:hover,
+.inline-tags a:focus-visible {
     background: color-mix(in srgb, var(--c) 22%, var(--rp-surface));
 }
 
@@ -218,23 +397,45 @@ time {
     margin: 1rem 0;
 }
 
+/* plain markdown links in the post body (inline tournament refs) — gold, so they read
+   distinctly from [[entity]] mentions (iris + dotted). the link's title attr gives the
+   hover tooltip that names the event. */
+.content a:not(.mention) {
+    color: var(--rp-gold);
+    text-decoration: none;
+}
+
 .source {
     color: var(--muted);
     font-size: 0.85rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
+/* disclaimer — top of the post footer (above the source line). its padding-top (rule → text)
+   matches the next section's margin-top (source → section rule), so the disclaimer + source
+   cluster sits centered between the two horizontal rules. */
+.disclaimer {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+/* end-of-post sections. margin-top == .disclaimer padding-top, so the source → rule gap
+   mirrors the rule → disclaimer gap (the disclaimer + source cluster centers between the
+   two horizontal rules). */
 .references,
 .related {
-    margin-top: 2.5rem;
+    margin-top: 1.5rem;
     padding-top: 1rem;
     border-top: 1px solid var(--line);
 }
 
 
-/* rich-presence mentions: [[target|label]] → dotted link; hover/focus shows a card from data-card.
-   missing entity (no .md) → dashed, no card. ponytail: CSS-only, no JS — tap-to-show on mobile
-   needs ~10 lines of JS, add when it bites. */
+/* rich-presence mentions: [[target|label]] → dotted link; hover/focus shows a profile card via
+   the #mention-pop singleton (JS). missing entity (no .md) → dashed, no card. */
 .mention {
     position: relative;
     color: var(--link);
@@ -250,56 +451,115 @@ time {
     cursor: help;
 }
 
-.mention[data-card]::after {
-    content: attr(data-card);
-    display: none;
-    position: absolute;
-    left: 0;
-    bottom: 100%;
-    z-index: 20;
-    max-width: 16rem;
-    width: max-content;
-    background: var(--rp-overlay);
-    color: var(--rp-text);
-    border: 1px solid var(--rp-subtle);
-    border-radius: 0.4rem;
-    padding: 0.35rem 0.6rem;
-    font-size: 0.8rem;
-    line-height: 1.3;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    pointer-events: none;
-}
-
-.mention[data-card]:hover::after,
-.mention[data-card]:focus::after {
-    display: block;
-}
-
-/* image popover for mentions carrying an image + basic info caption (data-info); singleton,
-   pointer-events:none. img has fixed height so box height is deterministic before load. */
+/* profile card for [[entity]] mentions — singleton, pointer-events:none. structured tiers fed by
+   data-name/sub/blurb; image optional (hidden when absent, .has-img toggles the divider). img has
+   fixed height so box height is deterministic before load. */
 #mention-pop {
     position: fixed;
-    width: 180px;
+    width: 12rem;
     z-index: 30;
     pointer-events: none;
-    background: var(--rp-overlay);
-    border: 1px solid var(--rp-subtle);
-    border-radius: 0.5rem;
+    background: linear-gradient(180deg, var(--rp-overlay), var(--rp-surface));
+    border: 1px solid rgba(196, 167, 231, 0.6);
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    /* ponytail: iris glow on top of the dark elevation shadows */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 18px rgba(196, 167, 231, 0.28), 0 10px 24px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0);
+    transition: opacity 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+}
+
+#mention-pop.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-6px);
+}
+
+/* origin-aware: when it flips below the trigger, enter moving down (away from the trigger) */
+#mention-pop.is-open.is-below {
+    transform: translateY(6px);
 }
 
 #mention-pop img {
     width: 100%;
-    height: 150px;
-    object-fit: contain;
+    /* area matches the image's own aspect (data-aspect → --ar), so cover = exact fit — no crop,
+       no letterbox — and height is deterministic before the <img> bytes load. */
+    aspect-ratio: var(--ar, 16 / 10);
+    object-fit: cover;
+    object-position: center 25%;
     display: block;
+    transform: scale(1);
+    transition: transform 0.2s var(--ease-out);
 }
 
-#mention-pop .pop-info {
-    margin: 0;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
+/* logos (transparent png): fixed plate, never crop. a little padding so the logo breathes —
+   photos go edge-to-edge, but a logo reads better with a gutter (contain renders inside the
+   padding). bg = plain theme base. */
+#mention-pop.is-logo img {
+    aspect-ratio: 16 / 10;
+    object-fit: contain;
+    object-position: center;
+    padding: 0.5rem;
+    background: var(--rp-base);
+}
+
+/* no image on this entity → drop the image row. (display:block above would override the [hidden]
+   attribute, so visibility is driven by the .has-img class instead.) */
+#mention-pop:not(.has-img) img {
+    display: none;
+}
+
+#mention-pop.is-open img {
+    transform: scale(1.04);
+}
+
+/* meta block — three tiers: name (title) / sub (full_name + kind) / blurb (body). generous
+   padding so the card breathes; the iris divider only appears under an image. */
+#mention-pop .pop-meta {
+    padding: 0.75rem 0.9rem 0.85rem;
+}
+
+#mention-pop.has-img .pop-meta {
+    border-top: 1px solid rgba(196, 167, 231, 0.28);
+}
+
+#mention-pop .pop-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--fg);
+}
+
+#mention-pop .pop-sub {
+    margin-top: 0.12rem;
+    font-size: 0.75rem;
     line-height: 1.3;
-    color: var(--rp-text);
+    color: var(--rp-subtle);
+}
+
+#mention-pop .pop-blurb {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--rp-subtle);
+}
+
+/* a11y: keep color/opacity fades for reduced-motion users, drop every movement */
+@media (prefers-reduced-motion: reduce) {
+    .tag-card,
+    .inline-tags a,
+    #mention-pop,
+    #mention-pop img {
+        transition-property: opacity, background-color, border-color !important;
+    }
+    .tag-card:hover,
+    .tag-card:focus-visible,
+    #mention-pop.is-open,
+    #mention-pop.is-open.is-below,
+    #mention-pop.is-open img {
+        transform: none !important;
+    }
 }
