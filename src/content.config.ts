@@ -17,9 +17,16 @@ const posts = defineCollection({
 // rich-presence entities — one .md per mentionable thing (person/team/film/game/anything).
 // name required; rest optional + graceful. /entities/[id] renders a hub + backlinks per entity.
 const entities = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/entities' }),
+  // generateId flattens nested folders (players/neo.md → id "neo") so /entities/[id]
+  // URLs stay clean and stable no matter how files are grouped under src/entities.
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/entities',
+    generateId: ({ entry }) => entry.split('/').pop()!.replace(/\.\w+$/, ''),
+  }),
   schema: z.object({
     name: z.string(),
+    full_name: z.string().optional(),
     kind: z.string().optional(),
     blurb: z.string().optional(),
     image: z.string().optional(),
