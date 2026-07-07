@@ -110,12 +110,50 @@ const onTags = path.startsWith('/tags');
           pop.classList.toggle('is-below', below);
           pop.classList.add('is-open');
         };
-        const hide = () => { pop.classList.remove('is-open'); };
+        let armed = null; // touch: the mention currently previewed — a 2nd tap on it navigates
+        const hide = () => { pop.classList.remove('is-open'); armed = null; };
         const on = () => pop.classList.contains('is-open');
-        document.addEventListener('mouseover', (e) => { const el = hit(e.target); if (el) show(el); });
-        document.addEventListener('mouseout', (e) => { const el = hit(e.target); if (el && on()) hide(); });
-        document.addEventListener('focusin', (e) => { const el = hit(e.target); if (el) show(el); });
-        document.addEventListener('focusout', (e) => { const el = hit(e.target); if (el && on()) hide(); });
+
+        // warm the image cache once, the first time any card opens, so hopping between mentions
+        // (each with its own image) is instant instead of loading on demand.
+        let preloaded = false;
+        const preloadAll = () => {
+          if (preloaded) return;
+          preloaded = true;
+          document.querySelectorAll('.mention[data-image]').forEach((m) => {
+            const u = m.dataset.image;
+            if (u) { const i = new Image(); i.src = u; }
+          });
+        };
+
+        // mouse/keyboard: hover shows, leave hides. but moving directly from one mention to another
+        // skips the hide — otherwise the card fades out then back in (a visible dim) between the two
+        // and the outgoing mouseout races the incoming mouseover. the incoming event just swaps content.
+        const toMention = (e) => e.relatedTarget instanceof Element && !!hit(e.relatedTarget);
+        document.addEventListener('mouseover', (e) => { const el = hit(e.target); if (el) { show(el); preloadAll(); } });
+        document.addEventListener('mouseout', (e) => { const el = hit(e.target); if (el && on() && !toMention(e)) hide(); });
+        document.addEventListener('focusin', (e) => { const el = hit(e.target); if (el) { show(el); preloadAll(); } });
+        document.addEventListener('focusout', (e) => { const el = hit(e.target); if (el && on() && !toMention(e)) hide(); });
+
+        // touch has no hover. two-tap: 1st tap previews the card (preventDefault so it doesn't
+        // navigate), 2nd tap on the same mention follows the link, tap anywhere else dismisses.
+        // pointerdown.pointerType reliably tells touch from mouse (synthesized mousemove can't).
+        let lastPointerType = 'mouse';
+        document.addEventListener('pointerdown', (e) => { lastPointerType = e.pointerType; }, true);
+        document.addEventListener('click', (e) => {
+          if (lastPointerType !== 'touch') return;
+          const el = hit(e.target);
+          if (el) {
+            if (armed === el) return;       // 2nd tap → let the anchor navigate
+            e.preventDefault();             // 1st tap → preview only
+            armed = el;
+            show(el);
+            preloadAll();
+          } else if (on()) {
+            hide();
+          }
+        });
+
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
       }
     </script>

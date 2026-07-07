@@ -18,8 +18,8 @@ writing, shared by link.
 - **Related posts** — each post links to others sharing a tag, computed from
   frontmatter with no extra wiring.
 - **Rich-presence mentions** — write `[[target|label]]` in any post to link an
-  entity. On hover it shows a profile card (name · sub · blurb, with an optional
-  aspect-matched image) and clicks through to an entity hub with backlinks.
+  entity. On hover or tap it shows a profile card (name · sub · blurb, with an
+  optional aspect-matched image) and clicks through to an entity hub with backlinks.
   Build-time, zero markdown deps.
 - **Dangling-safe** — a mention whose target has no entity renders as a dashed
   span, so broken links stay visible to you instead of vanishing silently.
@@ -88,6 +88,12 @@ Group entities in subfolders freely — the file name is the slug, so
 `src/entities/people/neo.md` is mentioned as `[[neo|…]]` and served at
 `/entities/neo`.
 
+**Author** — the site has one author (you). Make an entity for yourself
+(e.g. `src/entities/your-name.md`) and set `authorSlug` in `src/lib/site.ts` to its
+slug. Every post's byline then reads "by [your name]" and links to your entity
+hub, which lists your writing. Leave the entity out and posts show no byline —
+the feature is opt-in.
+
 **Images** — drop files in `public/img/` and reference them as `/img/...`.
 
 ## How mentions work
@@ -142,7 +148,8 @@ static host):
 │  ├─ layouts/Base.astro
 │  ├─ lib/
 │  │  ├─ wikilinks.ts   [[mention]] → profile-card link (remark plugin)
-│  │  └─ tags.ts        per-tag identity colors
+│  │  ├─ tags.ts        per-tag identity colors
+│  │  └─ site.ts        authorSlug — whose entity the byline links to
 │  ├─ pages/
 │  │  ├─ index.astro          /          latest posts + shelf entry
 │  │  ├─ shelf.astro          /shelf     the bookshelf (by date / by tag)
