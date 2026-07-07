@@ -284,6 +284,54 @@ time {
     font-size: 0.85rem;
 }
 
+/* byline — two icon-led items (author → their entity hub, and the date) on one muted line.
+   flex + gap so there's no stray whitespace between them: an earlier inline `<span class="sep">`
+   let Astro render a space before <time>; flex collapses whitespace-only text nodes, so it's gone.
+   the author is the navigable element — iris + weight 500 so it reads findable; icons + date stay
+   subtle. plain at rest — no dotted underline, so it doesn't promise a hover-card like an in-body
+   [[mention]] does. */
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    line-height: 1.25; /* tight: hugs the text so icon centering is accurate — body's 1.7 (for
+                           paragraphs) leaves a tall line-box where a centered icon reads shifted
+                           and adds uneven top/bot space */
+    /* restore the title→meta gap the tighter line-height removed (the lost top half-leading:
+       0.85rem × (1.7−1.25)/2 ≈ 0.19rem), so the space above matches the pre-fix version */
+    padding-top: 0.19rem;
+    margin: 0 0 0.25rem;
+    font-size: 0.85rem;
+    color: var(--rp-subtle);
+}
+
+.meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.meta-item svg {
+    width: 0.95em;
+    height: 0.95em;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.meta .author {
+    color: var(--link);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.meta .author:hover,
+.meta .author:focus-visible {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+}
+
 /* lists of posts */
 .post-list {
     list-style: none;

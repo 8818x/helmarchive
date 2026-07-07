@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { parseMentions, resolve } from '../../lib/wikilinks';
+import { authorSlug } from '../../lib/site';
 
 export async function getStaticPaths() {
   const [entities, posts] = await Promise.all([getCollection('entities'), getCollection('posts')]);
@@ -17,12 +18,21 @@ export async function getStaticPaths() {
           parseMentions(p.body ?? '').some((m) => m.mention && resolve(m.mention.target)?.slug === entity.id)
         )
         .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+      // the author entity owns every post → its hub lists them as "Writing" instead of backlinks.
+      // ponytail: single author, so all posts. for a 2nd writer, add `author: <slug>` to post
+      // frontmatter and filter posts by it instead of all-or-nothing on authorSlug.
+      authored: entity.id === authorSlug
+        ? [...posts].sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+        : [],
     },
   }));
 }
 
-const { entity, backlinks } = Astro.props;
+const { entity, backlinks, authored } = Astro.props;
 const e = entity.data;
+// author hub shows their writing; everyone else shows who mentions them.
+const isAuthor = authored.length > 0;
+const list = isAuthor ? authored : backlinks;
 ---
 
 <Base title={`${e.name} · helmarchive`}>
@@ -44,10 +54,10 @@ const e = entity.data;
     {e.blurb && <p class="blurb">{e.blurb}</p>}
 
     <section class="backlinks">
-      <h2>{backlinks.length ? `Mentioned in ${backlinks.length}` : 'Not mentioned yet'}</h2>
-      {backlinks.length > 0 && (
+      <h2>{isAuthor ? `Writing ${list.length}` : list.length ? `Mentioned in ${list.length}` : 'Not mentioned yet'}</h2>
+      {list.length > 0 && (
         <ul>
-          {backlinks.map((p) => (
+          {list.map((p) => (
             <li>
               <a href={`/posts/${p.id}`}>{p.data.title}</a>
               <time>{p.data.date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}</time>

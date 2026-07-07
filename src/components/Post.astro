@@ -1,12 +1,18 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { Icon } from 'astro-icon/components';
 import { tagColor } from '../lib/tags';
+import { authorSlug } from '../lib/site';
 
 interface Props {
   post: CollectionEntry<'posts'>;
 }
 const { post } = Astro.props;
 const { Content } = await render(post);
+
+// author byline — links to the author's entity hub. renders only when their entity exists
+// (the template ships empty; graceful like every other optional field).
+const author = (await getCollection('entities')).find((e) => e.id === authorSlug);
 
 // other posts sharing at least one tag — computed free, no extra frontmatter
 const all = await getCollection('posts');
@@ -18,7 +24,18 @@ const related = all
 
 <article>
   <h1>{post.data.title}</h1>
-  <time>{post.data.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
+  <p class="meta">
+    {author && (
+      <span class="meta-item">
+        <Icon name="lucide:square-pen" />
+        <a class="author" href={`/entities/${authorSlug}`}>{author.data.name}</a>
+      </span>
+    )}
+    <span class="meta-item">
+      <Icon name="lucide:calendar-days" />
+      <time>{post.data.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
+    </span>
+  </p>
   <ul class="inline-tags">
     {post.data.tags.map((t) => <li><a href={`/tags/${encodeURIComponent(t)}`} style={`--c:${tagColor(t)}`}>{t}</a></li>)}
   </ul>
