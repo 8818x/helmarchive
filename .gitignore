@@ -13,10 +13,6 @@ skills-lock.json
 # local env / secrets
 .env
 
-# user content (content repo, not this engine repo)
-public/img/
-src/content/posts/
-
 # root-level dev screenshots
 /*.png
 
