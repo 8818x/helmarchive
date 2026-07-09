@@ -5,6 +5,7 @@ import { getCollection } from 'astro:content';
 import { tagColor } from '../lib/tags';
 import { Icon } from 'astro-icon/components';
 import { defaultLang, ui } from '../lib/i18n';
+import { siteName } from '../lib/site';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
@@ -18,7 +19,7 @@ const height = (len: number) => Math.round(50 + (len / lenMax) * 12);
 const t = ui[defaultLang];
 ---
 
-<Base title="helmarchive · shelf" lang={defaultLang}>
+<Base title={`${siteName} · shelf`} lang={defaultLang}>
   <section class="v-d">
     <div class="shelf-head">
       <div class="shelf-toggle" id="shelf-toggle">

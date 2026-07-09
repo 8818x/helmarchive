@@ -407,6 +407,14 @@ time {
     margin: 1rem 0;
 }
 
+/* inline images (![](/img/...)) — cap to the column so a wide photo can't
+   overflow; block so a caption or spacing reads cleanly. */
+.content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
 /* plain markdown links in the post body (inline tournament refs) — gold, so they read
    distinctly from [[entity]] mentions (iris + dotted). the link's title attr gives the
    hover tooltip that names the event. */

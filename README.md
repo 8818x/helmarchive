@@ -1,8 +1,9 @@
 # helmarchive
 
 A personal-article archive built on **Astro 6** — a static site you deploy once
-and write to forever. No SEO, no auth, no accounts, no comments: just your
-writing, shared by link.
+and write to forever. No search-SEO spam, no auth, no accounts, no comments:
+just your writing, shared by link. Links preview nicely when shared (OpenGraph
+title + image), but there's no sitemap, analytics, or keyword chasing.
 
 > [!NOTE]
 > This repo is the **engine template** — it ships empty. Drop your writing into
@@ -27,8 +28,36 @@ writing, shared by link.
   remembered per reader and applied before first paint, so there's no flash.
 - **External links behave** — links in your markdown open in a new tab
   automatically (build-time), so you never wire `target` by hand.
+- **Inline images** — drop a file in `public/img/` and embed it anywhere in a
+  post body with `![alt](/img/...)`. Optional and unlimited; posts without
+  images render exactly as before.
 - **Few dependencies** — Astro plus an icon set (`astro-icon` + `lucide`) for
   the theme toggle. Static output, deploys anywhere.
+
+## Branding & social previews
+
+Identity lives in `src/lib/site.ts`. `siteName` defaults to the engine name; the
+others are empty until you set them, and an empty value skips its tag entirely.
+
+```ts
+export const siteName = 'My Archive';     // browser tab, brand link, og:site_name
+export const siteDescription = '…';        // og:description (empty = skipped)
+export const ogImage = '/img/banner.jpg';  // site-wide social-preview image
+export const favicon = '/img/icon.svg';    // browser tab icon (one PNG/SVG)
+```
+
+Then set your deployed origin so OG tags resolve as absolute URLs (social
+crawlers ignore relative paths):
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  site: 'https://your-subdomain.pages.dev',
+  // …
+});
+```
+
+Drop favicon and banner files in `public/img/` and reference them as `/img/…`.
 
 ## Quickstart
 
@@ -127,7 +156,7 @@ render as a dashed span instead of disappearing, so you always see what's broken
 - **Tag colors** — give a tag an identity color in `src/lib/tags.ts`; it lights
   up book spines, tag chips, and tag-page accents from one place.
 - **Fonts & palette** — `src/styles/global.css`.
-- **Canonical URL** — set `site` in `astro.config.mjs` if you need absolute URLs.
+- **Canonical URL** — set `site` in `astro.config.mjs` (required for OG tags; see above).
 
 > [!TIP]
 > `tags[0]` is special — it's the post's main shelf and drives its spine color.

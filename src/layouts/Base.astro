@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { Icon } from 'astro-icon/components';
 import { DATE_FMT, LOCALE, defaultLang, ui, type Lang } from '../lib/i18n';
+import { siteName, siteDescription, ogImage, favicon } from '../lib/site';
 
 interface Props {
   title: string;
@@ -14,12 +15,19 @@ const i18nJson = JSON.stringify({ ui, locale: LOCALE, dateFmt: DATE_FMT });
 const path = Astro.url.pathname;
 const onShelf = path.startsWith('/shelf');
 const onTags = path.startsWith('/tags');
+// og:url + og:image must be absolute (social crawlers ignore relative paths), so
+// both resolve against Astro.site from `site` in astro.config.mjs — and both are
+// skipped entirely when `site` is unset, rather than emitting a dead relative URL.
+const site = Astro.site;
+const canonical = site && new URL(Astro.url.pathname, site).href;
+const ogImageAbs = ogImage && site && new URL(ogImage, site).href;
 ---
 
 <html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {favicon && <link rel="icon" href={favicon} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -27,6 +35,12 @@ const onTags = path.startsWith('/tags');
       rel="stylesheet"
     />
     <title>{title}</title>
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:type" content="website" />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {siteDescription && <meta property="og:description" content={siteDescription} />}
+    {ogImageAbs && <meta property="og:image" content={ogImageAbs} />}
     <script is:inline>
       // set theme before paint to avoid a flash. rose-pine is the default; light/dark
       // are stored in localStorage. runs synchronously in <head> ahead of first paint.
@@ -40,7 +54,7 @@ const onTags = path.startsWith('/tags');
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="/">helmarchive</a>
+      <a class="brand" href="/">{siteName}</a>
       <nav class="topnav">
         <a class:list={['explore', { active: onShelf }]} href="/shelf" aria-label={t.bookshelf} data-i18n-attr="bookshelf"><Icon name="lucide:library" /></a>
         <a class:list={['explore', { active: onTags }]} href="/tags" aria-label={t.tags} data-i18n-attr="tags"><Icon name="lucide:tags" /></a>

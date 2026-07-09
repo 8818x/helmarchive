@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { parseMentions, resolve } from '../../lib/wikilinks';
-import { authorSlug } from '../../lib/site';
+import { authorSlug, siteName } from '../../lib/site';
 import { dateShort, defaultLang, ui } from '../../lib/i18n';
 
 export async function getStaticPaths() {
@@ -37,7 +37,7 @@ const list = isAuthor ? authored : backlinks;
 const t = ui[defaultLang];
 ---
 
-<Base title={`${e.name} · helmarchive`} lang={defaultLang}>
+<Base title={`${e.name} · ${siteName}`} lang={defaultLang}>
   <article class="entity">
     <header class="entity-head">
       {e.image && <img src={e.image} alt={e.name} loading="lazy" />}
