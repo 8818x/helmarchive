@@ -60,6 +60,7 @@ npm run preview  # serve the build locally
 ```yaml
 ---
 title: My post
+lang: en                   # optional: en or th; defaults to en
 date: 2026-01-01
 tags: [reading, essays]   # tags[0] is the main shelf; the rest are sub-tags
 source: https://...        # optional — origin link (e.g. a Facebook post)

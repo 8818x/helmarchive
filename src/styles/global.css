@@ -96,9 +96,21 @@ body {
 }
 
 .explore {
-    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     color: var(--rp-subtle);
     text-decoration: none;
+    transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+.explore svg {
+    width: 18px;
+    height: 18px;
+    display: block;
 }
 
 .explore:hover {
@@ -107,96 +119,87 @@ body {
 
 .explore.active {
     color: var(--fg);
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: var(--rp-iris);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 4px;
+    background: var(--rp-overlay);
 }
 
 .topnav {
     display: flex;
-    gap: 1.25rem;
-}
-
-/* topbar right cluster: nav links + theme toggle, center-aligned so the icon sits level
-   with the text while the text keeps its baseline against the brand. */
-.topright {
-    display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.25rem;
 }
 
-/* theme dropdown — icon trigger (sun) + a <details>/summary disclosure. muted at rest like
-   the .explore nav links; the open state lifts it onto the surface tone. */
-.themetog {
+/* preferences dropdown — ⋯ trigger + single panel with theme & lang sections */
+.preftog {
     position: relative;
 }
 
-.themetog-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--rp-subtle);
+.preftog > summary {
     cursor: pointer;
     list-style: none;
-    transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out), border-color 0.15s var(--ease-out), transform 0.1s var(--ease-out);
 }
 
-.themetog-btn::-webkit-details-marker {
+.preftog > summary::-webkit-details-marker {
     display: none;
 }
 
-.themetog-btn:hover {
+.preftog[open] > .explore {
     color: var(--fg);
-    background: var(--rp-surface);
+    background: var(--rp-overlay);
 }
 
-.themetog-btn:focus-visible {
-    outline: 2px solid var(--rp-iris);
-    outline-offset: 1px;
-}
-
-.themetog-btn:active {
-    transform: scale(0.96);
-}
-
-.themetog[open] .themetog-btn {
-    color: var(--fg);
-    background: var(--rp-surface);
-    border-color: var(--line);
-}
-
-.themetog-btn svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-}
-
-/* menu panel — surface + hairline border + a soft shadow (carries depth on light; the
-   border carries it on dark where shadows read weak). anchored top-right under the icon. */
-.themetog-menu {
+/* menu panel — compact, no section headers */
+.preftog-menu {
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
     z-index: 20;
-    min-width: 8.5rem;
-    padding: 0.3rem;
+    min-width: 5.5rem;
+    padding: 0.25rem;
     background: var(--rp-surface);
     border: 1px solid var(--line);
     border-radius: 8px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
 }
 
-/* keyframe (not transition): <details> goes display:none → shown on open, so only an
-   animation fires on the entry frame, a transition would not. origin = the trigger. */
-.themetog[open] .themetog-menu {
+.preftog[open] .preftog-menu {
     animation: togpop 0.14s var(--ease-out);
+}
+
+/* thin divider between theme and lang rows */
+.preftog-divider {
+    height: 1px;
+    margin: 0.15rem 0.2rem;
+    background: var(--line);
+}
+
+/* menu buttons */
+.preftog-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.35rem 0.55rem;
+    border: 0;
+    background: transparent;
+    color: var(--rp-subtle);
+    font-family: inherit;
+    font-size: 0.8rem;
+    text-align: left;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+}
+
+.preftog-menu button:hover,
+.preftog-menu button:focus-visible {
+    background: var(--rp-overlay);
+    color: var(--fg);
+    outline: none;
+}
+
+/* active item — subtle bg tint, no iris checkmark */
+.preftog-menu button[aria-current='true'] {
+    color: var(--fg);
+    font-weight: 600;
+    background: var(--rp-overlay);
 }
 
 @keyframes togpop {
@@ -204,55 +207,12 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.themetog-menu button {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 0.45rem 0.6rem;
-    border: 0;
-    background: transparent;
-    color: var(--rp-subtle);
-    font-family: inherit;
-    font-size: 0.85rem;
-    text-align: left;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
-}
-
-.themetog-menu button:hover,
-.themetog-menu button:focus-visible {
-    background: var(--rp-overlay);
-    color: var(--fg);
-    outline: none;
-}
-
-.themetog-menu button[aria-current='true'] {
-    color: var(--fg);
-    font-weight: 600;
-}
-
-.themetog-menu .check {
-    margin-left: auto;
-    padding-left: 0.75rem;
-    color: var(--rp-iris);
-    opacity: 0;
-}
-
-.themetog-menu button[aria-current='true'] .check {
-    opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .themetog[open] .themetog-menu {
+    .preftog[open] .preftog-menu {
         animation: none;
     }
-    .themetog-btn,
-    .themetog-menu button {
-        transition-property: background-color, color, border-color !important;
-    }
-    .themetog-btn:active {
-        transform: none !important;
+    .preftog-menu button {
+        transition-property: background-color, color !important;
     }
 }
 
@@ -310,6 +270,7 @@ time {
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
+    min-height: 1.25em;
 }
 
 .meta-item svg {
@@ -317,6 +278,7 @@ time {
     height: 0.95em;
     opacity: 0.7;
     flex-shrink: 0;
+    transform: translateY(0.06em);
 }
 
 .meta .author {

@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { tagColor } from '../../lib/tags';
+import { dateLong, defaultLang, ui } from '../../lib/i18n';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -18,18 +19,19 @@ export async function getStaticPaths() {
 }
 
 const { tag, posts } = Astro.props;
+const t = ui[defaultLang];
 ---
 
-<Base title={tag}>
+<Base title={tag} lang={defaultLang}>
   <header class="tag-head" style={`--c:${tagColor(tag)}`}>
     <h1>{tag}</h1>
-    <p class="tag-meta">{posts.length} {posts.length === 1 ? 'entry' : 'entries'}</p>
+    <p class="tag-meta"><span>{posts.length}</span> <span data-i18n={posts.length === 1 ? 'entry' : 'entries'}>{posts.length === 1 ? t.entry : t.entries}</span></p>
   </header>
   <ul class="post-list">
     {posts.map((post) => (
       <li>
         <a href={`/posts/${post.id}`}>{post.data.title}</a>
-        <time>{post.data.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
+        <time datetime={post.data.date.toISOString()} data-datefmt="long">{dateLong(post.data.date, post.data.lang)}</time>
       </li>
     ))}
   </ul>

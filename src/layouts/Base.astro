@@ -1,18 +1,22 @@
 ---
 import '../styles/global.css';
 import { Icon } from 'astro-icon/components';
+import { DATE_FMT, LOCALE, defaultLang, ui, type Lang } from '../lib/i18n';
 
 interface Props {
   title: string;
+  lang?: Lang;
 }
-const { title } = Astro.props;
+const { title, lang = defaultLang } = Astro.props;
+const t = ui[lang];
+const i18nJson = JSON.stringify({ ui, locale: LOCALE, dateFmt: DATE_FMT });
 // active nav link: which top-level section the current page belongs to
 const path = Astro.url.pathname;
 const onShelf = path.startsWith('/shelf');
 const onTags = path.startsWith('/tags');
 ---
 
-<html lang="th">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,22 +41,23 @@ const onTags = path.startsWith('/tags');
   <body>
     <header class="topbar">
       <a class="brand" href="/">helmarchive</a>
-      <div class="topright">
-        <nav class="topnav">
-          <a class:list={['explore', { active: onShelf }]} href="/shelf">bookshelf</a>
-          <a class:list={['explore', { active: onTags }]} href="/tags">tags</a>
-        </nav>
-        <details class="themetog">
-          <summary class="themetog-btn" aria-label="เปลี่ยนธีม" title="ธีม">
-            <Icon name="lucide:sun" />
+      <nav class="topnav">
+        <a class:list={['explore', { active: onShelf }]} href="/shelf" aria-label={t.bookshelf} data-i18n-attr="bookshelf"><Icon name="lucide:library" /></a>
+        <a class:list={['explore', { active: onTags }]} href="/tags" aria-label={t.tags} data-i18n-attr="tags"><Icon name="lucide:tags" /></a>
+        <details class="preftog">
+          <summary class="explore" aria-label={t.preferences} data-i18n-attr="preferences">
+            <Icon name="lucide:more-horizontal" />
           </summary>
-          <div class="themetog-menu">
-            <button type="button" data-theme-set="rose-pine">rose pine <span class="check" aria-hidden="true">✓</span></button>
-            <button type="button" data-theme-set="dark">dark <span class="check" aria-hidden="true">✓</span></button>
-            <button type="button" data-theme-set="light">light <span class="check" aria-hidden="true">✓</span></button>
+          <div class="preftog-menu">
+            <button type="button" data-theme-set="rose-pine"><span data-i18n="themeRosePine">rose-pine</span></button>
+            <button type="button" data-theme-set="dark"><span data-i18n="themeDark">{t.themeDark}</span></button>
+            <button type="button" data-theme-set="light"><span data-i18n="themeLight">{t.themeLight}</span></button>
+            <div class="preftog-divider" aria-hidden="true"></div>
+            <button type="button" data-lang-set="en">EN</button>
+            <button type="button" data-lang-set="th">TH</button>
           </div>
         </details>
-      </div>
+      </nav>
     </header>
     <main>
       <slot />
@@ -157,37 +162,75 @@ const onTags = path.startsWith('/tags');
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
       }
     </script>
-    <script>
-      // theme switch — <details>/summary disclosure (native toggle + keyboard) holding three
-      // buttons. we add only what <details> lacks: click-outside close, Escape close, focus
-      // return, and the current-theme checkmark. rose-pine = default (no attr = :root).
-      const root = document.documentElement;
-      const tog = document.querySelector('.themetog');
+    <script define:vars={{ payload: i18nJson, initialLang: lang }}>
+      const { ui, locale, dateFmt } = JSON.parse(payload);
+      const rootLang = document.documentElement;
+      const tog = document.querySelector('.preftog');
+      // dates render server-side in the build locale (dateLong/dateShort in i18n.ts);
+      // reformat here so they follow the toggle. locale + opts are the same source the build
+      // uses — serialized into `payload` above — so the two paths can't drift.
+      // <time datetime="ISO" data-datefmt="long|short">
+      const applyLang = (lang) => {
+        if (!ui[lang]) return;
+        rootLang.lang = lang;
+        rootLang.dataset.lang = lang;
+        document.querySelectorAll('[data-datefmt]').forEach((el) => {
+          const iso = el.getAttribute('datetime');
+          if (iso) el.textContent = new Intl.DateTimeFormat(locale[lang], dateFmt[el.dataset.datefmt] || dateFmt.long).format(new Date(iso));
+        });
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+          const text = ui[lang][el.dataset.i18n];
+          if (text) el.textContent = text;
+        });
+        document.querySelectorAll('[data-i18n-attr]').forEach((el) => {
+          const text = ui[lang][el.dataset.i18nAttr];
+          if (text) {
+            el.setAttribute('aria-label', text);
+            el.setAttribute('title', text);
+          }
+        });
+        document.querySelectorAll('[data-lang-set]').forEach((b) =>
+          b.setAttribute('aria-current', String(b.dataset.langSet === lang))
+        );
+      };
+      let chosenLang = initialLang;
+      try { chosenLang = localStorage.getItem('lang') || initialLang; } catch (e) {}
+      applyLang(chosenLang);
       if (tog) {
         const summary = tog.querySelector('summary');
-        const buttons = tog.querySelectorAll('[data-theme-set]');
-        const sync = () => {
+        const root = document.documentElement;
+        // theme buttons
+        const themeButtons = tog.querySelectorAll('[data-theme-set]');
+        const syncTheme = () => {
           const cur = root.dataset.theme || 'rose-pine';
-          buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.themeSet === cur)));
+          themeButtons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.themeSet === cur)));
         };
-        buttons.forEach((b) =>
+        themeButtons.forEach((b) =>
           b.addEventListener('click', () => {
             const t = b.dataset.themeSet;
             if (t === 'rose-pine') delete root.dataset.theme;
             else root.dataset.theme = t;
             try { localStorage.setItem('theme', t); } catch (e) {}
-            sync();
-            tog.open = false;
-            summary.focus();
+            syncTheme();
           })
         );
+        // lang buttons
+        tog.querySelectorAll('[data-lang-set]').forEach((b) =>
+          b.addEventListener('click', () => {
+            const next = b.dataset.langSet;
+            try { localStorage.setItem('lang', next); } catch (e) {}
+            applyLang(next);
+          })
+        );
+        // close on click-outside
         document.addEventListener('click', (e) => {
           if (tog.open && !tog.contains(e.target)) tog.open = false;
         });
+        // close on Escape
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape' && tog.open) { tog.open = false; summary.focus(); }
         });
-        sync();
+        syncTheme();
       }
     </script>
   </body>

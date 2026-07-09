@@ -3,16 +3,24 @@
 import Base from '../layouts/Base.astro';
 import Post from '../components/Post.astro';
 import { getCollection } from 'astro:content';
+import { ui } from '../lib/i18n';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
 );
 const latest = posts[0]; // ponytail: ≥1 post assumed
+const t = ui[latest.data.lang];
 ---
-<Base title="helmarchive">
-  <p class="kicker">latest in bookshelf</p>
-  <Post post={latest} />
+<Base title="helmarchive" lang={latest.data.lang}>
+  <section class="home-latest">
+    <p class="kicker" data-i18n="latest">{t.latest}</p>
+    <Post post={latest} />
+  </section>
 </Base>
 <style>
-  .kicker { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 600; color: var(--rp-subtle); margin: 0 0 1rem; }
+  .kicker { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 600; color: var(--rp-subtle); margin: 0 0 0.85rem; }
+  :global(.home-latest article) { max-width: 46rem; }
+  :global(.home-latest h1) { font-size: 1.7rem; line-height: 1.28; margin-bottom: 0.55rem; }
+  :global(.home-latest .meta) { margin-bottom: 0.55rem; }
+  :global(.home-latest .inline-tags) { margin-top: 0; }
 </style>

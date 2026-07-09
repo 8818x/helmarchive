@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { parseMentions, resolve } from '../../lib/wikilinks';
 import { authorSlug } from '../../lib/site';
+import { dateShort, defaultLang, ui } from '../../lib/i18n';
 
 export async function getStaticPaths() {
   const [entities, posts] = await Promise.all([getCollection('entities'), getCollection('posts')]);
@@ -33,9 +34,10 @@ const e = entity.data;
 // author hub shows their writing; everyone else shows who mentions them.
 const isAuthor = authored.length > 0;
 const list = isAuthor ? authored : backlinks;
+const t = ui[defaultLang];
 ---
 
-<Base title={`${e.name} · helmarchive`}>
+<Base title={`${e.name} · helmarchive`} lang={defaultLang}>
   <article class="entity">
     <header class="entity-head">
       {e.image && <img src={e.image} alt={e.name} loading="lazy" />}
@@ -45,7 +47,7 @@ const list = isAuthor ? authored : backlinks;
         {e.kind && <p class="kind">{e.kind}</p>}
         {e.url && (
           <a class="official" href={e.url} target="_blank" rel="nofollow noopener noreferrer">
-            Official site ↗
+            <span data-i18n="official">{t.official}</span> ↗
           </a>
         )}
       </div>
@@ -54,13 +56,21 @@ const list = isAuthor ? authored : backlinks;
     {e.blurb && <p class="blurb">{e.blurb}</p>}
 
     <section class="backlinks">
-      <h2>{isAuthor ? `Writing ${list.length}` : list.length ? `Mentioned in ${list.length}` : 'Not mentioned yet'}</h2>
+      <h2>
+        {isAuthor ? (
+          <><span data-i18n="writing">{t.writing}</span> {list.length}</>
+        ) : list.length ? (
+          <><span data-i18n="mentionedIn">{t.mentionedIn}</span> {list.length}</>
+        ) : (
+          <span data-i18n="notMentioned">{t.notMentioned}</span>
+        )}
+      </h2>
       {list.length > 0 && (
         <ul>
           {list.map((p) => (
             <li>
               <a href={`/posts/${p.id}`}>{p.data.title}</a>
-              <time>{p.data.date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+              <time datetime={p.data.date.toISOString()} data-datefmt="short">{dateShort(p.data.date, p.data.lang)}</time>
             </li>
           ))}
         </ul>
