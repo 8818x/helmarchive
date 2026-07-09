@@ -3,12 +3,14 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import { tagColor } from '../lib/tags';
 import { authorSlug } from '../lib/site';
+import { dateLong, ui } from '../lib/i18n';
 
 interface Props {
   post: CollectionEntry<'posts'>;
 }
 const { post } = Astro.props;
 const { Content } = await render(post);
+const t = ui[post.data.lang];
 
 // author byline — links to the author's entity hub. renders only when their entity exists
 // (the template ships empty; graceful like every other optional field).
@@ -33,7 +35,7 @@ const related = all
     )}
     <span class="meta-item">
       <Icon name="lucide:calendar-days" />
-      <time>{post.data.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
+      <time datetime={post.data.date.toISOString()} data-datefmt="long">{dateLong(post.data.date, post.data.lang)}</time>
     </span>
   </p>
   <ul class="inline-tags">
@@ -44,13 +46,15 @@ const related = all
     <Content />
   </div>
 
+  <p class="disclaimer" data-i18n="disclaimer">{t.disclaimer}</p>
+
   {post.data.source && (
-    <p class="source">Written on <a href={post.data.source} target="_blank" rel="nofollow noopener">Facebook</a></p>
+    <p class="source"><span data-i18n="source">{t.source}</span> <a href={post.data.source} target="_blank" rel="nofollow noopener">Facebook</a></p>
   )}
 
   {post.data.references.length > 0 && (
     <section class="references">
-      <h2>References</h2>
+      <h2 data-i18n="references">{t.references}</h2>
       <ul>
         {post.data.references.map((r) => (
           <li><a href={r.url} rel="nofollow noopener">{r.label}</a></li>
@@ -61,7 +65,7 @@ const related = all
 
   {related.length > 0 && (
     <section class="related">
-      <h2>Related</h2>
+      <h2 data-i18n="related">{t.related}</h2>
       <ul class="post-list">
         {related.map((p) => <li><a href={`/posts/${p.id}`}>{p.data.title}</a></li>)}
       </ul>

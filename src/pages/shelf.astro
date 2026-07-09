@@ -3,6 +3,8 @@
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { tagColor } from '../lib/tags';
+import { Icon } from 'astro-icon/components';
+import { defaultLang, ui } from '../lib/i18n';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
@@ -13,14 +15,15 @@ const BOOK_SCALE = 0.68;
 const lenMax = Math.max(1, ...posts.map((p) => (p.body?.length ?? 0)));
 const thickness = (len: number) => ((12 + (len / lenMax) * 26) * BOOK_SCALE).toFixed(1);
 const height = (len: number) => Math.round(50 + (len / lenMax) * 12);
+const t = ui[defaultLang];
 ---
 
-<Base title="helmarchive · shelf">
+<Base title="helmarchive · shelf" lang={defaultLang}>
   <section class="v-d">
     <div class="shelf-head">
       <div class="shelf-toggle" id="shelf-toggle">
-        <button data-shelf="time" class="is-active">by date</button>
-        <button data-shelf="tag">by tag</button>
+        <button data-shelf="time" class="is-active" aria-label={t.byDate} title={t.byDate} data-i18n-attr="byDate"><Icon name="lucide:calendar" /></button>
+        <button data-shelf="tag" aria-label={t.byTag} title={t.byTag} data-i18n-attr="byTag"><Icon name="lucide:tags" /></button>
       </div>
     </div>
 
@@ -146,7 +149,8 @@ const height = (len: number) => Math.round(50 + (len / lenMax) * 12);
 <style is:global>
   .v-d .shelf-head { display: flex; justify-content: flex-end; margin: -0.75rem 0 1.25rem; }
   .shelf-toggle { display: inline-flex; gap: 0.25rem; padding: 0.2rem; background: transparent; border: 1px solid var(--rp-overlay); border-radius: 999px; transform: scale(0.9); transform-origin: right center; }
-  .shelf-toggle button { background: transparent; border: none; color: var(--rp-muted); font-size: 0.82rem; padding: 0.25rem 0.7rem; border-radius: 999px; cursor: pointer; font-family: inherit; }
+  .shelf-toggle button { display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--rp-muted); padding: 0.3rem; border-radius: 999px; cursor: pointer; font-family: inherit; }
+  .shelf-toggle button svg { width: 15px; height: 15px; display: block; }
   .shelf-toggle button.is-active { background: var(--rp-overlay); color: var(--rp-text); }
 
   .shelves { display: flex; flex-direction: column; gap: 1.25rem; border: 1px solid var(--rp-overlay); border-radius: 8px; padding: 1rem 0.6rem 0.8rem; }
