@@ -31,7 +31,7 @@ const t = ui[defaultLang];
     {posts.map((post) => (
       <li>
         <a href={`/posts/${post.id}`}>{post.data.title}</a>
-        <time datetime={post.data.date.toISOString()} data-datefmt="long">{dateLong(post.data.date, post.data.lang)}</time>
+        <time datetime={post.data.date.toISOString()} data-datefmt="long">{dateLong(post.data.date, defaultLang)}</time>
       </li>
     ))}
   </ul>

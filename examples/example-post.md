@@ -1,6 +1,5 @@
 ---
 title: Example Post
-lang: en
 date: 2026-01-01
 tags: [example]
 ---

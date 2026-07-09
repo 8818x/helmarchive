@@ -3,14 +3,14 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import { tagColor } from '../lib/tags';
 import { authorSlug } from '../lib/site';
-import { dateLong, ui } from '../lib/i18n';
+import { dateLong, defaultLang, ui } from '../lib/i18n';
 
 interface Props {
   post: CollectionEntry<'posts'>;
 }
 const { post } = Astro.props;
 const { Content } = await render(post);
-const t = ui[post.data.lang];
+const t = ui[defaultLang];
 
 // author byline — links to the author's entity hub. renders only when their entity exists
 // (the template ships empty; graceful like every other optional field).
@@ -35,7 +35,7 @@ const related = all
     )}
     <span class="meta-item">
       <Icon name="lucide:calendar-days" />
-      <time datetime={post.data.date.toISOString()} data-datefmt="long">{dateLong(post.data.date, post.data.lang)}</time>
+      <time datetime={post.data.date.toISOString()} data-datefmt="long">{dateLong(post.data.date, defaultLang)}</time>
     </span>
   </p>
   <ul class="inline-tags">
