@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import Post from '../components/Post.astro';
 import { getCollection } from 'astro:content';
 import { ui } from '../lib/i18n';
+import { siteName } from '../lib/site';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
@@ -11,7 +12,7 @@ const posts = (await getCollection('posts')).sort(
 const latest = posts[0]; // ponytail: ≥1 post assumed
 const t = ui[latest.data.lang];
 ---
-<Base title="helmarchive" lang={latest.data.lang}>
+<Base title={siteName} lang={latest.data.lang}>
   <section class="home-latest">
     <p class="kicker" data-i18n="latest">{t.latest}</p>
     <Post post={latest} />

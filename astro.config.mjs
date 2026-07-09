@@ -1,5 +1,6 @@
 // static output, deploys on Cloudflare Pages as-is.
-// add `site: 'https://<your-subdomain>.pages.dev'` later if you need canonical URLs.
+// set `site` to your deployed origin — required for og:image/og:url to resolve as
+// absolute URLs (social crawlers ignore relative paths). localhost during dev is fine.
 import { defineConfig } from 'astro/config';
 import remarkWikilinks from './src/lib/wikilinks';
 import icon from 'astro-icon';
