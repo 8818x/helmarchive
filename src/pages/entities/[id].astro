@@ -70,7 +70,7 @@ const t = ui[defaultLang];
           {list.map((p) => (
             <li>
               <a href={`/posts/${p.id}`}>{p.data.title}</a>
-              <time datetime={p.data.date.toISOString()} data-datefmt="short">{dateShort(p.data.date, p.data.lang)}</time>
+              <time datetime={p.data.date.toISOString()} data-datefmt="short">{dateShort(p.data.date, defaultLang)}</time>
             </li>
           ))}
         </ul>
