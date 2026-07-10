@@ -8,7 +8,7 @@ import { defaultLang, ui } from '../lib/i18n';
 import { siteName } from '../lib/site';
 
 const posts = (await getCollection('posts')).sort(
-  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+  (a, b) => a.data.date.getTime() - b.data.date.getTime()
 );
 
 // spine thickness + height from body length — longer post = thicker & taller book
