@@ -47,7 +47,7 @@ const t = ui[defaultLang];
         {e.kind && <p class="kind">{e.kind}</p>}
         {e.url && (
           <a class="official" href={e.url} target="_blank" rel="nofollow noopener noreferrer">
-            <span data-i18n="official">{t.official}</span> ↗
+            {new URL(e.url).hostname.replace(/^www\./, '')} ↗
           </a>
         )}
       </div>
