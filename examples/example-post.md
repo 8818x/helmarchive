@@ -18,3 +18,22 @@ Embed images anywhere in the body with standard markdown — drop the file in
 ![alt text](/img/example.jpg)
 
 Images are optional and unlimited; a post with none renders exactly as before.
+
+---
+
+## Inline conventions
+
+**Reminder** — optional author note at the top of the body. Place it after the
+first image if the post leads with one. A blockquote starting with `> ! ` renders
+as a callout (`remarkReminder` in `astro.config.mjs`):
+
+```markdown
+> ! Your free-text note here.
+```
+
+**Quote** — external quotation with a clickable source link.
+
+```markdown
+> "The quote text."
+> — [Source Name](https://example.com)
+```

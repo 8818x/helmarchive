@@ -24,10 +24,31 @@ function externalLinksNewTab() {
   };
 }
 
+// blockquote that opens with `> ! ` → <aside class="reminder"> callout. mdast→hast via
+// data.hName/hProperties, same mechanism as the mention nodes in wikilinks.ts. content stays
+// real mdast so links inside still get target=_blank from externalLinksNewTab.
+function remarkReminder() {
+  const walk = (node) => {
+    if (!Array.isArray(node.children)) return;
+    for (const child of node.children) {
+      if (child.type === 'blockquote') {
+        const para = child.children?.[0];
+        const text = para?.children?.[0];
+        if (para?.type === 'paragraph' && text?.type === 'text' && text.value.startsWith('! ')) {
+          text.value = text.value.slice(2);
+          child.data = { ...child.data, hName: 'aside', hProperties: { className: ['reminder'] } };
+        }
+      }
+      walk(child);
+    }
+  };
+  return (tree) => { walk(tree); return tree; };
+}
+
 export default defineConfig({
   integrations: [icon()],
   markdown: {
-    remarkPlugins: [remarkWikilinks],
+    remarkPlugins: [remarkWikilinks, remarkReminder],
     rehypePlugins: [externalLinksNewTab],
   },
 });

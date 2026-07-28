@@ -31,6 +31,10 @@ title + image), but there's no sitemap, analytics, or keyword chasing.
 - **Inline images** — drop a file in `public/img/` and embed it anywhere in a
   post body with `![alt](/img/...)`. Optional and unlimited; posts without
   images render exactly as before.
+- **Reminders** — start a blockquote with `> ! ` and it renders as a callout
+  `<aside>`, handy for a note pinned to the top of a post. Build-time, zero deps.
+- **Pull-quotes** — blockquotes render as styled quotations; a `[source](url)`
+  inside stays clickable and opens in a new tab.
 - **Few dependencies** — Astro plus an icon set (`astro-icon` + `lucide`) for
   the theme toggle. Static output, deploys anywhere.
 
@@ -126,6 +130,19 @@ the feature is opt-in.
 
 **Images** — drop files in `public/img/` and reference them as `/img/...`.
 
+**Reminders & quotes** — two inline body conventions:
+
+```
+> ! A note pinned to the top of a post — renders as a callout <aside>.
+
+> "An external quotation."
+> — [Source](https://example.com)
+```
+
+A reminder (`> ! `) is a build-time remark plugin (`remarkReminder` in
+`astro.config.mjs`); a quote is just a styled blockquote. Links inside either
+still open in a new tab.
+
 ## How mentions work
 
 ```
@@ -192,5 +209,5 @@ static host):
 │  └─ styles/global.css
 ├─ public/img/          images referenced as /img/...
 ├─ examples/            copy-and-go post + entity templates
-└─ astro.config.mjs
+└─ astro.config.mjs     remarkWikilinks + remarkReminder + externalLinksNewTab
 ```
