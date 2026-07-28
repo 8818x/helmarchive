@@ -423,6 +423,30 @@ time {
     text-decoration: none;
 }
 
+/* author note at top of body — <aside class="reminder">free text</aside>
+   place it after the first image if the post leads with one. */
+.content .reminder {
+    margin: 0 0 1.5rem;
+    padding: 0.8rem 1rem;
+    background: color-mix(in srgb, var(--rp-gold) 10%, var(--rp-surface));
+    border-left: 3px solid var(--rp-gold);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    color: var(--fg);
+}
+.content .reminder p { margin: 0; }
+.content .reminder p + p { margin-top: 0.5rem; }
+
+/* external quote — > "text" — [source](url) */
+.content blockquote {
+    margin: 1.25rem 0;
+    padding: 0.2rem 0 0.2rem 1rem;
+    border-left: 3px solid var(--line);
+    color: var(--rp-subtle);
+    font-style: italic;
+}
+.content blockquote a { font-style: normal; }
+
 .source {
     color: var(--muted);
     font-size: 0.85rem;
