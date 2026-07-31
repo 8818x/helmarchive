@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { parseMentions, resolve } from '../../lib/wikilinks';
 import { authorSlug, siteName } from '../../lib/site';
 import { dateShort, defaultLang, ui } from '../../lib/i18n';
+import { Icon } from 'astro-icon/components';
 
 export async function getStaticPaths() {
   const [entities, posts] = await Promise.all([getCollection('entities'), getCollection('posts')]);
@@ -47,7 +48,7 @@ const t = ui[defaultLang];
         {e.kind && <p class="kind">{e.kind}</p>}
         {e.url && (
           <a class="official" href={e.url} target="_blank" rel="nofollow noopener noreferrer">
-            {new URL(e.url).hostname.replace(/^www\./, '')} ↗
+            {new URL(e.url).hostname.replace(/^www\./, '')} <Icon name="lucide:external-link" />
           </a>
         )}
       </div>
@@ -88,7 +89,8 @@ const t = ui[defaultLang];
   .entity-meta h1 { margin: 0; }
   .full-name { color: var(--rp-subtle); font-size: 1rem; font-weight: 500; margin: 0.15rem 0 0; }
   .kind { color: var(--rp-subtle); font-size: 0.9rem; margin: 0.25rem 0 0; }
-  .official { display: inline-block; margin-top: 0.9rem; color: var(--link); }
+  .official { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.9rem; color: var(--link); }
+  .official svg { width: 0.9em; height: 0.9em; }
   .blurb { font-size: 1.05rem; line-height: 1.6; max-width: 42rem; margin-top: 1.5rem; }
   .backlinks { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
   .backlinks ul { list-style: none; padding: 0; }
