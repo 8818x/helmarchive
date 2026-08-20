@@ -44,7 +44,7 @@ Drop a file in `public/img/` and embed it anywhere:
 // frontmatter this post uses
 title: What you can write
 date: 2026-01-01
-author: example-author     // optional — per-post author; omit = site default
+author: example-author     // optional — author entity slug; omit = no byline
 tags: [example, demo]      // tags[0] = main shelf
 references: [{ label, url }] // optional — renders the list below
 ```

@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { parseMentions, resolve } from '../../lib/wikilinks';
-import { authorSlug, siteName } from '../../lib/site';
+import { siteName } from '../../lib/site';
 import { dateShort, defaultLang, ui } from '../../lib/i18n';
 import { Icon } from 'astro-icon/components';
 
@@ -21,10 +21,9 @@ export async function getStaticPaths() {
         )
         .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
       // an author entity's hub lists their posts as "Writing" instead of backlinks.
-      // a post's author is its `author` frontmatter, falling back to the site default —
-      // posts written before per-post author existed stay attributed to the primary.
+      // a post's author is its `author` frontmatter — each post declares its writer.
       authored: posts
-        .filter((p) => (p.data.author ?? authorSlug) === entity.id)
+        .filter((p) => p.data.author === entity.id)
         .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
     },
   }));

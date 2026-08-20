@@ -2,7 +2,6 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import { tagColor } from '../lib/tags';
-import { authorSlug } from '../lib/site';
 import { dateLong, defaultLang, ui } from '../lib/i18n';
 
 interface Props {
@@ -12,9 +11,9 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const t = ui[defaultLang];
 
-// author byline — per-post `author` frontmatter overrides the site default, so
-// a second writer just adds an entity + the field. renders only when the entity exists.
-const authorId = post.data.author ?? authorSlug;
+// author byline — per-post `author` frontmatter names the entity; each post
+// declares its own writer. renders only when the entity exists.
+const authorId = post.data.author;
 const author = (await getCollection('entities')).find((e) => e.id === authorId);
 
 // other posts sharing at least one tag — computed free, no extra frontmatter

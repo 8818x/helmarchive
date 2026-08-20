@@ -102,7 +102,7 @@ npm run preview  # serve the build locally
 ---
 title: My post
 date: 2026-01-01
-author: my-name            # optional — author entity slug; omitted = site default
+author: my-name            # optional — author entity slug; omitted = no byline
 tags: [reading, essays]   # tags[0] is the main shelf; the rest are sub-tags
 source: https://...        # optional — origin link (e.g. a Facebook post)
 references:                # optional — cited links
@@ -130,13 +130,11 @@ Group entities in subfolders freely — the file name is the slug, so
 `src/entities/people/neo.md` is mentioned as `[[neo|…]]` and served at
 `/entities/neo`.
 
-**Authors** — every post can name its author. A post without an `author:` field
-belongs to the site default (`authorSlug` in `src/lib/site.ts`), so the common
-case is one line of setup: make an entity for yourself (copy
-`src/entities/example-author.md`), set `authorSlug` to its slug, and every byline
-reads "by [your name]". A second writer needs no site config — just their entity
-file plus `author: their-slug` in their posts. An author's hub lists their
-writing; leave the entity out and those posts show no byline — opt-in.
+**Authors** — each post names its author: `author: <entity-slug>` in frontmatter
+points at an entity (copy `src/entities/example-author.md` as a starting point).
+The byline reads "by [name]" and links to the author's hub, which lists their
+writing. Multiple authors need no site config — one entity file each, one
+frontmatter line per post. A post without `author:` shows no byline.
 
 **Images** — drop files in `public/img/` and reference them as `/img/...`.
 
@@ -209,7 +207,7 @@ static host):
 │  ├─ lib/
 │  │  ├─ wikilinks.ts   [[mention]] → profile-card link (remark plugin)
 │  │  ├─ tags.ts        per-tag identity colors
-│  │  └─ site.ts        authorSlug — whose entity the byline links to
+│  │  └─ site.ts        site identity (name, og, favicon)
 │  ├─ pages/
 │  │  ├─ index.astro          /          latest posts + shelf entry
 │  │  ├─ shelf.astro          /shelf     the bookshelf (by date / by tag)

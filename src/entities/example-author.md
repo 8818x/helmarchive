@@ -7,6 +7,6 @@ url: https://yoursite.example  # optional → "Official site" link
 ---
 
 The author entity — rename or duplicate this file as your own slug (e.g.
-`src/entities/your-name.md`) and set `authorSlug` in `src/lib/site.ts` to that
-slug. Every post's byline then reads "by Your Name" and links here — this page
+`src/entities/your-name.md`), then put `author: your-name` in a post's
+frontmatter. That post's byline reads "by Your Name" and links here — this page
 lists your writing. `image: /img/you.png` adds a portrait to the hub and cards.

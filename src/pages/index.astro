@@ -17,7 +17,7 @@ const hasNote = note.trim().length > 0; // empty string = no note, no section
 <Base title={siteName} lang={defaultLang}>
   {hasNote && (
     <aside class="postit">
-      <p class="kicker">note</p>
+      <p class="kicker" data-i18n="bulletinBoard">{t.bulletinBoard}</p>
       <p class="postit-card">{note}</p>
     </aside>
   )}
