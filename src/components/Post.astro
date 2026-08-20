@@ -12,9 +12,10 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const t = ui[defaultLang];
 
-// author byline — links to the author's entity hub. renders only when their entity exists
-// (the template ships empty; graceful like every other optional field).
-const author = (await getCollection('entities')).find((e) => e.id === authorSlug);
+// author byline — per-post `author` frontmatter overrides the site default, so
+// a second writer just adds an entity + the field. renders only when the entity exists.
+const authorId = post.data.author ?? authorSlug;
+const author = (await getCollection('entities')).find((e) => e.id === authorId);
 
 // other posts sharing at least one tag — computed free, no extra frontmatter
 const all = await getCollection('posts');
@@ -30,7 +31,7 @@ const related = all
     {author && (
       <span class="meta-item">
         <Icon name="lucide:square-pen" />
-        <a class="author" href={`/entities/${authorSlug}`}>{author.data.name}</a>
+        <a class="author" href={`/entities/${authorId}`}>{author.data.name}</a>
       </span>
     )}
     <span class="meta-item">

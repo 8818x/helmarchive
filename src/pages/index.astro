@@ -1,18 +1,26 @@
 ---
-// homepage — just the latest entry.
+// homepage — just the latest entry, plus the owner's post-it (src/data/note.ts).
 import Base from '../layouts/Base.astro';
 import Post from '../components/Post.astro';
 import { getCollection } from 'astro:content';
 import { ui, defaultLang } from '../lib/i18n';
 import { siteName } from '../lib/site';
+import note from '../data/note.md?raw';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
 );
 const latest = posts[0]; // ponytail: ≥1 post assumed
 const t = ui[defaultLang];
+const hasNote = note.trim().length > 0; // empty string = no note, no section
 ---
 <Base title={siteName} lang={defaultLang}>
+  {hasNote && (
+    <aside class="postit">
+      <p class="kicker">note</p>
+      <p class="postit-card">{note}</p>
+    </aside>
+  )}
   <section class="home-latest">
     <p class="kicker" data-i18n="latest">{t.latest}</p>
     <Post post={latest} />
@@ -20,6 +28,14 @@ const t = ui[defaultLang];
 </Base>
 <style>
   .kicker { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 600; color: var(--rp-subtle); margin: 0 0 0.85rem; }
+  /* post-it: stacked above the post normally; on wide screens it floats in the
+     right margin beside the post column (main is centered at 70ch). */
+  .postit { width: 20rem; max-width: 100%; margin: 0 0 2rem; }
+  .postit-card { margin: 0; padding: 0.8rem 0.9rem; font-size: 0.9rem; line-height: 1.5; background: var(--chip); border: 1px solid var(--line); border-radius: 4px; }
+  :global(main) { position: relative; }
+  @media (min-width: 80em) {
+    .postit { position: absolute; top: 2.25rem; left: calc(100% + 2rem); margin: 0; }
+  }
   :global(.home-latest article) { max-width: 46rem; }
   :global(.home-latest h1) { font-size: 1.7rem; line-height: 1.28; margin-bottom: 0.55rem; }
   :global(.home-latest .meta) { margin-bottom: 0.55rem; }

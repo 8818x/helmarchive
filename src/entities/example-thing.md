@@ -2,7 +2,7 @@
 name: Example Thing
 full_name: Example Thing, Inc.
 kind: example
-blurb: A sample entity. Copy into src/entities/ to make it mentionable.
+blurb: A sample entity. Mention it from any post with [[example-thing|…]].
 url: https://example.com
 ---
 

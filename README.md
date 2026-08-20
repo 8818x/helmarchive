@@ -11,11 +11,15 @@ title + image), but there's no sitemap, analytics, or keyword chasing.
 
 ## Features
 
+- **Post-it note** — one plain-text note pinned beside the latest post on the
+  homepage. Edit `src/data/note.md` to change it; empty the file to hide it.
+- **Multi-author** — a byline per post via one `author:` frontmatter line that
+  falls back to a site default; an author's entity hub lists their writing.
 - **Bookshelf archive** — every post is a "book" whose thickness and height scale
   with its length, colored by its main tag. Toggle *by date* ↔ *by tag* with an
   animated reshuffle (`/shelf`).
-- **Tag pages** — a tag cloud at `/tags`, plus a per-tag page listing every post
-  in that tag, newest first.
+- **Tag pages** — a tag list at `/tags` (most-used first), plus a per-tag page
+  listing every post in that tag, newest first.
 - **Related posts** — each post links to others sharing a tag, computed from
   frontmatter with no extra wiring.
 - **Rich-presence mentions** — write `[[target|label]]` in any post to link an
@@ -75,9 +79,13 @@ npm run dev      # → http://localhost:4321
 Add your first post and entity:
 
 ```bash
-cp examples/example-post.md   src/posts/hello.md
-cp examples/example-entity.md src/entities/my-thing.md
+cp src/posts/example-post.md         src/posts/hello.md
+cp src/entities/example-thing.md     src/entities/my-thing.md
 ```
+
+`example-post.md` is a living demo of every body feature (reminders, quotes,
+mentions, images) — duplicate it and keep what you use. `example-author.md` in
+`src/entities/` shows the author-entity setup.
 
 Build for production:
 
@@ -93,8 +101,8 @@ npm run preview  # serve the build locally
 ```yaml
 ---
 title: My post
-lang: en                   # optional: en or th; defaults to en
 date: 2026-01-01
+author: my-name            # optional — author entity slug; omitted = site default
 tags: [reading, essays]   # tags[0] is the main shelf; the rest are sub-tags
 source: https://...        # optional — origin link (e.g. a Facebook post)
 references:                # optional — cited links
@@ -122,13 +130,18 @@ Group entities in subfolders freely — the file name is the slug, so
 `src/entities/people/neo.md` is mentioned as `[[neo|…]]` and served at
 `/entities/neo`.
 
-**Author** — the site has one author (you). Make an entity for yourself
-(e.g. `src/entities/your-name.md`) and set `authorSlug` in `src/lib/site.ts` to its
-slug. Every post's byline then reads "by [your name]" and links to your entity
-hub, which lists your writing. Leave the entity out and posts show no byline —
-the feature is opt-in.
+**Authors** — every post can name its author. A post without an `author:` field
+belongs to the site default (`authorSlug` in `src/lib/site.ts`), so the common
+case is one line of setup: make an entity for yourself (copy
+`src/entities/example-author.md`), set `authorSlug` to its slug, and every byline
+reads "by [your name]". A second writer needs no site config — just their entity
+file plus `author: their-slug` in their posts. An author's hub lists their
+writing; leave the entity out and those posts show no byline — opt-in.
 
 **Images** — drop files in `public/img/` and reference them as `/img/...`.
+
+**Post-it note** — `src/data/note.md` is plain text (no markdown rendering)
+shown on the homepage next to the latest post. Empty the file to hide it.
 
 **Reminders & quotes** — two inline body conventions:
 
@@ -200,14 +213,14 @@ static host):
 │  ├─ pages/
 │  │  ├─ index.astro          /          latest posts + shelf entry
 │  │  ├─ shelf.astro          /shelf     the bookshelf (by date / by tag)
-│  │  ├─ tags/index.astro     /tags      tag cloud
+│  │  ├─ tags/index.astro     /tags      tag list, most-used first
 │  │  ├─ tags/[tag].astro     /tags/:t   posts in a tag
 │  │  ├─ posts/[id].astro     /posts/:id a single post
 │  │  └─ entities/[id].astro  /entities/:id  entity hub + backlinks
+│  ├─ data/note.md     homepage post-it (plain text; empty = hidden)
 │  ├─ posts/            your articles
 │  ├─ entities/         mentionable things
 │  └─ styles/global.css
 ├─ public/img/          images referenced as /img/...
-├─ examples/            copy-and-go post + entity templates
 └─ astro.config.mjs     remarkWikilinks + remarkReminder + externalLinksNewTab
 ```

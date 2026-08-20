@@ -13,13 +13,33 @@ const t = ui[defaultLang];
 
 <Base title={t.tags} lang={defaultLang}>
   <ul class="tags">
-    {tags.map(([tag, count]) => (
+    {tags.map(([tag, count], i) => (
       <li>
-        <a class="tag-card" href={`/tags/${encodeURIComponent(tag)}`} style={`--c:${tagColor(tag)}`}>
-          <span class="tnum" aria-hidden="true">{count}</span>
-          <span class="tname">{tag}</span>
+        <a class={i === 0 ? 'top' : ''} href={`/tags/${encodeURIComponent(tag)}`} style={`--c:${tagColor(tag)}`}>
+          {tag} <span class="count">({count})</span>
         </a>
       </li>
     ))}
   </ul>
 </Base>
+<style>
+  /* chip recipe mirrors .inline-tags in global.css so the language stays one */
+  .tags { list-style: none; padding: 0; margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .tags a {
+    display: inline-block;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--fg);
+    text-decoration: none;
+    padding: 0.22rem 0.75rem;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--c) 8%, var(--rp-surface));
+    border: 1px solid color-mix(in srgb, var(--c) 26%, transparent);
+    transition: background 0.15s var(--ease-out);
+  }
+  .tags a:hover,
+  .tags a:focus-visible { background: color-mix(in srgb, var(--c) 20%, var(--rp-surface)); }
+  /* most-used tag sits a shade stronger, like the reference's highlight */
+  .tags a.top { background: color-mix(in srgb, var(--c) 16%, var(--rp-surface)); font-weight: 500; }
+  .count { font-size: 0.8em; color: var(--rp-subtle); }
+</style>

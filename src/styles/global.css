@@ -313,63 +313,6 @@ time {
     text-decoration: none;
 }
 
-/* tag index — card grid; each card carries its tag color (--c, set inline) */
-.tags {
-    list-style: none;
-    padding: 0;
-    margin-top: 1.5rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
-}
-
-.tag-card {
-    --c: var(--rp-subtle);
-    position: relative;
-    display: block;
-    overflow: hidden;
-    padding: 1.3rem 1.3rem 1.1rem;
-    border-radius: 0.8rem;
-    background: var(--rp-surface);
-    border: 1px solid var(--line);
-    border-top: 3px solid var(--c);
-    color: var(--fg);
-    text-decoration: none;
-    transition: transform 0.18s var(--ease-out), background 0.18s var(--ease-out), border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
-}
-
-.tag-card:hover,
-.tag-card:focus-visible {
-    transform: translateY(-3px);
-    background: color-mix(in srgb, var(--c) 12%, var(--rp-surface));
-    border-color: color-mix(in srgb, var(--c) 45%, var(--line));
-    /* layered: a near-contact shadow grounds the lift, the colored glow carries it */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 14px 30px color-mix(in srgb, var(--c) 16%, transparent);
-    outline: none;
-}
-
-.tag-card .tname {
-    position: relative;
-    display: block;
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--c);
-    letter-spacing: -0.01em;
-}
-
-/* big faded count watermark in the tag's color */
-.tag-card .tnum {
-    position: absolute;
-    right: 0.5rem;
-    bottom: -0.4rem;
-    font-size: 4.5rem;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--c);
-    opacity: 0.1;
-    pointer-events: none;
-}
-
 /* inline tag chips under a post title */
 .inline-tags {
     list-style: none;
@@ -591,14 +534,11 @@ time {
 
 /* a11y: keep color/opacity fades for reduced-motion users, drop every movement */
 @media (prefers-reduced-motion: reduce) {
-    .tag-card,
     .inline-tags a,
     #mention-pop,
     #mention-pop img {
         transition-property: opacity, background-color, border-color !important;
     }
-    .tag-card:hover,
-    .tag-card:focus-visible,
     #mention-pop.is-open,
     #mention-pop.is-open.is-below,
     #mention-pop.is-open img {

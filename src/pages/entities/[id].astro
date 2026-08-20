@@ -20,12 +20,12 @@ export async function getStaticPaths() {
           parseMentions(p.body ?? '').some((m) => m.mention && resolve(m.mention.target)?.slug === entity.id)
         )
         .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
-      // the author entity owns every post → its hub lists them as "Writing" instead of backlinks.
-      // ponytail: single author, so all posts. for a 2nd writer, add `author: <slug>` to post
-      // frontmatter and filter posts by it instead of all-or-nothing on authorSlug.
-      authored: entity.id === authorSlug
-        ? [...posts].sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-        : [],
+      // an author entity's hub lists their posts as "Writing" instead of backlinks.
+      // a post's author is its `author` frontmatter, falling back to the site default —
+      // posts written before per-post author existed stay attributed to the primary.
+      authored: posts
+        .filter((p) => (p.data.author ?? authorSlug) === entity.id)
+        .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
     },
   }));
 }

@@ -6,6 +6,7 @@ const posts = defineCollection({
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
+    author: z.string().optional(), // per-post author entity slug; falls back to authorSlug in site.ts
     tags: z.array(z.string()).default([]), // tags[0] = main tag (its shelf); rest are sub-tags
     source: z.string().url().optional(),
     references: z
