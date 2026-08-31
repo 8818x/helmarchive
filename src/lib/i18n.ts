@@ -26,6 +26,8 @@ export const ui = {
     themeLight: 'light',
     language: 'Language',
     bulletinBoard: 'bulletin board',
+    charCount: 'characters',
+    readTime: 'min read',
   },
   th: {
     bookshelf: 'ชั้นหนังสือ',
@@ -50,6 +52,8 @@ export const ui = {
     themeLight: 'สว่าง',
     language: 'ภาษา',
     bulletinBoard: 'บอร์ดประกาศ',
+    charCount: 'ตัวอักษร',
+    readTime: 'นาที',
   },
 } satisfies Record<Lang, Record<string, string>>;
 
