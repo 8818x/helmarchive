@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import { Icon } from 'astro-icon/components';
 import { DATE_FMT, LOCALE, defaultLang, ui, type Lang } from '../lib/i18n';
-import { siteName, siteDescription, ogImage, favicon } from '../lib/site';
+import { siteName, siteDescription, ogImage, favicon, footer } from '../lib/site';
 
 interface Props {
   title: string;
@@ -76,6 +76,7 @@ const ogImageAbs = ogImage && site && new URL(ogImage, site).href;
     <main>
       <slot />
     </main>
+    {footer && <footer class="site-footer">{footer}</footer>}
     <div id="mention-pop" role="tooltip">
       <img alt="" />
       <div class="pop-meta">

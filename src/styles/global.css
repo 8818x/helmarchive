@@ -222,7 +222,14 @@ main {
     padding: 2.25rem 1.5rem 4rem;
 }
 
-/* site footer removed — theme switcher moved into the topbar (icon dropdown). */
+/* site footer — the one editable line from src/lib/site.ts */
+.site-footer {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 1.5rem 1.5rem;
+    font-size: 0.8rem;
+    color: var(--rp-subtle);
+}
 
 a {
     color: var(--link);
