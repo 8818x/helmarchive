@@ -1,6 +1,11 @@
 :root {
     --maxw: 70ch;
 
+    /* radius scale — 4px = in-page boxes (chips, cards, buttons, images); 8px =
+       floating panels (menus, popovers, tooltips). decorative bars exempt. */
+    --radius: 4px;
+    --radius-panel: 8px;
+
     /* Rosé Pine (base) — https://rosepinetheme.com/palette/ */
     --rp-base: #191724;
     --rp-surface: #1f1d2e;
@@ -31,7 +36,10 @@
    of the stylesheet adapts with no further edits. each theme gets its OWN link accent
    (iris) so entity/mention links visibly change between themes, not just the bg. no
    [data-theme='rose-pine'] rule is needed — :root already IS rose-pine, so setting that
-   value is a clean no-op fallback. */
+   value is a clean no-op fallback.
+   NOTE: --rp-* names describe hues ONLY in the Rosé Pine default. dark/light reuse
+   them as slot names and swap in theme-appropriate hues (iris → blue, gold → pink
+   or orange). when editing a themed value, read the per-line comment, not the name. */
 [data-theme='dark'] {
     color-scheme: dark;
     --rp-base: #111317;
@@ -74,10 +82,18 @@ body {
     color: var(--fg);
     background: var(--bg);
     line-height: 1.7;
+    /* sticky footer — body fills the viewport and main stretches, so the footer
+       sits on the bottom edge even when the page content is short */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* top bar — wordmark (→ home) + explore link */
+/* top bar — wordmark (→ home) + explore link. width:100% because body is a column
+   flex (sticky footer): cross-axis auto margins would otherwise size these boxes
+   to fit-content instead of stretching to the max-width cap. */
 .topbar {
+    width: 100%;
     max-width: var(--maxw);
     margin: 0 auto;
     padding: 1.75rem 1.5rem 0;
@@ -101,7 +117,7 @@ body {
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     color: var(--rp-subtle);
     text-decoration: none;
     transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out);
@@ -157,7 +173,7 @@ body {
     padding: 0.25rem;
     background: var(--rp-surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-panel);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
 }
 
@@ -183,7 +199,7 @@ body {
     font-family: inherit;
     font-size: 0.8rem;
     text-align: left;
-    border-radius: 5px;
+    border-radius: var(--radius);
     cursor: pointer;
     transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
 }
@@ -217,14 +233,18 @@ body {
 }
 
 main {
+    width: 100%;
     max-width: var(--maxw);
     margin: 0 auto;
     padding: 2.25rem 1.5rem 4rem;
+    flex: 1;
 }
 
-/* site footer — the one editable line from src/lib/site.ts */
+/* site footer — the one editable line from src/lib/site.ts. `ch` scales with
+   font-size, so at 0.8rem the box must be 1/0.8 wider to match main's --maxw. */
 .site-footer {
-    max-width: var(--maxw);
+    width: 100%;
+    max-width: calc(var(--maxw) * 1.25);
     margin: 0 auto;
     padding: 0 1.5rem 1.5rem;
     font-size: 0.8rem;
@@ -249,6 +269,17 @@ h2 {
 time {
     color: var(--rp-subtle);
     font-size: 0.85rem;
+}
+
+/* section kicker — tiny uppercase lead-in label ("latest in bookshelf", "tags",
+   "bookshelf"). shared by home, tags index, and the bookshelf. */
+.kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--rp-subtle);
+    margin: 0 0 0.85rem;
 }
 
 /* byline — two icon-led items (author → their entity hub, and the date) on one muted line.
@@ -320,7 +351,11 @@ time {
     text-decoration: none;
 }
 
-/* inline tag chips under a post title */
+/* inline tag chips under a post title — tag-colored text on a faint tint of the
+   same color. the tags index (.tags a in pages/tags/index.astro) shares the
+   structure (tint over surface, tinted border, --radius) but runs larger
+   (0.9rem) with --fg text, since chips are that page's primary content.
+   change the two together. */
 .inline-tags {
     list-style: none;
     padding: 0;
@@ -337,7 +372,7 @@ time {
     color: var(--c);
     text-decoration: none;
     padding: 0.05rem 0.55rem;
-    border-radius: 999px;
+    border-radius: var(--radius);
     background: color-mix(in srgb, var(--c) 12%, var(--rp-surface));
     border: 1px solid color-mix(in srgb, var(--c) 32%, transparent);
     transition: background 0.15s var(--ease-out);
@@ -380,7 +415,7 @@ time {
     padding: 0.8rem 1rem;
     background: color-mix(in srgb, var(--rp-gold) 10%, var(--rp-surface));
     border-left: 3px solid var(--rp-gold);
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
     font-size: 0.9rem;
     color: var(--fg);
 }
@@ -425,6 +460,32 @@ time {
     border-top: 1px solid var(--line);
 }
 
+/* references list — icon marker instead of the default dot */
+.ref-list {
+    list-style: none;
+    padding: 0;
+}
+
+.ref-list li {
+    padding: 0.2rem 0;
+}
+
+.ref-list a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+/* inline icon before each list link, sized like the meta icons */
+.ref-list svg,
+.post-list li svg {
+    width: 0.9em;
+    height: 0.9em;
+    opacity: 0.7;
+    flex-shrink: 0;
+    transform: translateY(0.08em);
+}
+
 
 /* rich-presence mentions: [[target|label]] → dotted link; hover/focus shows a profile card via
    the #mention-pop singleton (JS). missing entity (no .md) → dashed, no card. */
@@ -453,7 +514,7 @@ time {
     pointer-events: none;
     background: linear-gradient(180deg, var(--rp-overlay), var(--rp-surface));
     border: 1px solid rgba(196, 167, 231, 0.6);
-    border-radius: 6px;
+    border-radius: var(--radius-panel);
     overflow: hidden;
     /* ponytail: iris glow on top of the dark elevation shadows */
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 18px rgba(196, 167, 231, 0.28), 0 10px 24px rgba(0, 0, 0, 0.55);

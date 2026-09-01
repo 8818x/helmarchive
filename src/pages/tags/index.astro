@@ -12,6 +12,7 @@ const t = ui[defaultLang];
 ---
 
 <Base title={t.tags} lang={defaultLang}>
+  <p class="kicker" data-i18n="tags">{t.tags}</p>
   <ul class="tags">
     {tags.map(([tag, count], i) => (
       <li>
@@ -23,8 +24,11 @@ const t = ui[defaultLang];
   </ul>
 </Base>
 <style>
-  /* chip recipe mirrors .inline-tags in global.css so the language stays one */
-  .tags { list-style: none; padding: 0; margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  /* chip recipe mirrors .inline-tags in global.css (the source of truth) — same
+     structure (tint over surface, tinted border, --radius), but this page runs
+     larger (0.9rem) with --fg text since chips are its primary content.
+     change both together */
+  .tags { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.45rem; }
   .tags a {
     display: inline-block;
     font-size: 0.9rem;
@@ -32,7 +36,7 @@ const t = ui[defaultLang];
     color: var(--fg);
     text-decoration: none;
     padding: 0.22rem 0.75rem;
-    border-radius: 4px;
+    border-radius: var(--radius);
     background: color-mix(in srgb, var(--c) 8%, var(--rp-surface));
     border: 1px solid color-mix(in srgb, var(--c) 26%, transparent);
     transition: background 0.15s var(--ease-out);
