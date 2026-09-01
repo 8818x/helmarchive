@@ -5,7 +5,7 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, basename } from 'node:path';
 
-type Entity = { slug: string; name: string; full_name?: string; kind?: string; blurb?: string; url?: string; image?: string };
+type Entity = { slug: string; name: string; full_name?: string; kind?: string; blurb?: string; image?: string };
 
 function parseFrontmatter(raw: string): Record<string, string> {
     const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -32,7 +32,7 @@ function entityMap(): Map<string, Entity> {
         if (!f.endsWith('.md')) continue;
         const fm = parseFrontmatter(readFileSync(join(dir, f), 'utf8'));
         const slug = basename(f, '.md');
-        const e: Entity = { slug, name: fm.name ?? slug, full_name: fm.full_name, kind: fm.kind, blurb: fm.blurb, url: fm.url, image: fm.image };
+        const e: Entity = { slug, name: fm.name ?? slug, full_name: fm.full_name, kind: fm.kind, blurb: fm.blurb, image: fm.image };
         cache.set(slug.toLowerCase(), e);
         cache.set(e.name.toLowerCase(), e); // resolve by name OR slug
     }

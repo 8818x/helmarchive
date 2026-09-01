@@ -79,9 +79,9 @@ const minutes = Math.max(1, Math.ceil(chars / 500));
   {post.data.references.length > 0 && (
     <section class="references">
       <h2 data-i18n="references">{t.references}</h2>
-      <ul>
+      <ul class="ref-list">
         {post.data.references.map((r) => (
-          <li><a href={r.url} rel="nofollow noopener">{r.label}</a></li>
+          <li><a href={r.url} rel="nofollow noopener"><Icon name="lucide:book-search" /> {r.label}</a></li>
         ))}
       </ul>
     </section>
@@ -91,7 +91,7 @@ const minutes = Math.max(1, Math.ceil(chars / 500));
     <section class="related">
       <h2 data-i18n="related">{t.related}</h2>
       <ul class="post-list">
-        {related.map((p) => <li><a href={`/posts/${p.id}`}>{p.data.title}</a></li>)}
+        {related.map((p) => <li><a href={`/posts/${p.id}`}><Icon name="lucide:book-copy" /> {p.data.title}</a></li>)}
       </ul>
     </section>
   )}

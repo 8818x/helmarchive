@@ -3,7 +3,12 @@ name: Your Name
 full_name: Your Full Name      # optional → shown under the name on the hub
 kind: author                   # optional
 blurb: A line or two about you. # optional
-url: https://yoursite.example  # optional → "Official site" link
+urls:                          # optional → one row per external link; label omit = "Official site", icon omit = globe
+                                 #   icon = lucide name ("facebook") or uploaded image path ("/img/icon.png")
+  - url: https://yoursite.example
+  - label: Facebook
+    url: https://facebook.com/yourpage
+    icon: /img/example.jpg
 ---
 
 The author entity — rename or duplicate this file as your own slug (e.g.
