@@ -45,11 +45,12 @@ const t = ui[defaultLang];
         <h1>{e.name}</h1>
         {e.full_name && <p class="full-name">{e.full_name}</p>}
         {e.kind && <p class="kind">{e.kind}</p>}
-        {e.url && (
-          <a class="official" href={e.url} target="_blank" rel="nofollow noopener noreferrer">
-            {new URL(e.url).hostname.replace(/^www\./, '')} <Icon name="lucide:external-link" />
+        {e.urls?.map(({ label, url, icon }) => (
+          <a class="official" href={url} target="_blank" rel="nofollow noopener noreferrer">
+            {icon?.startsWith('/') ? <img src={icon} alt="" /> : <Icon name={`lucide:${icon ?? 'globe'}`} />}
+            {label ?? <span data-i18n="official">{t.official}</span>}
           </a>
-        )}
+        ))}
       </div>
     </header>
 
@@ -83,16 +84,19 @@ const t = ui[defaultLang];
   /* ponytail: cap to a square box so a portrait photo shrinks instead of towering
      over short meta; center meta against the image — kills the hollow gap. */
   .entity-head { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
-  .entity-head img { max-width: 12rem; max-height: 12rem; width: auto; height: auto; border-radius: 3px; flex-shrink: 0; }
+  .entity-head img { max-width: 12rem; max-height: 12rem; width: auto; height: auto; border-radius: var(--radius); flex-shrink: 0; }
   .entity-meta { min-width: 0; }
   .entity-meta h1 { margin: 0; }
   .full-name { color: var(--rp-subtle); font-size: 1rem; font-weight: 500; margin: 0.15rem 0 0; }
   .kind { color: var(--rp-subtle); font-size: 0.9rem; margin: 0.25rem 0 0; }
-  .official { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.9rem; color: var(--link); }
-  .official svg { width: 0.9em; height: 0.9em; }
+  .official { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.9rem; color: var(--link); text-decoration: none; }
+  .official + .official { margin-top: 0.55rem; }
+  .official svg,
+  .official img { width: 0.9em; height: 0.9em; }
   .blurb { font-size: 1.05rem; line-height: 1.6; max-width: 42rem; margin-top: 1.5rem; }
   .backlinks { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
   .backlinks ul { list-style: none; padding: 0; }
+  .backlinks a { text-decoration: none; }
   .backlinks li { padding: 0.4rem 0; }
   .backlinks time { color: var(--rp-subtle); font-size: 0.85rem; margin-left: 0.6rem; }
 </style>

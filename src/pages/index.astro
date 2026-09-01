@@ -27,11 +27,10 @@ const hasNote = note.trim().length > 0; // empty string = no note, no section
   </section>
 </Base>
 <style>
-  .kicker { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 600; color: var(--rp-subtle); margin: 0 0 0.85rem; }
   /* post-it: stacked above the post normally; on wide screens it floats in the
      right margin beside the post column (main is centered at 70ch). */
   .postit { width: 20rem; max-width: 100%; margin: 0 0 2rem; }
-  .postit-card { margin: 0; padding: 0.8rem 0.9rem; font-size: 0.9rem; line-height: 1.5; background: var(--chip); border: 1px solid var(--line); border-radius: 4px; }
+  .postit-card { margin: 0; padding: 0.8rem 0.9rem; font-size: 0.9rem; line-height: 1.5; background: var(--chip); border: 1px solid var(--line); border-radius: var(--radius); }
   :global(main) { position: relative; }
   @media (min-width: 80em) {
     .postit { position: absolute; top: 2.25rem; left: calc(100% + 2rem); margin: 0; }

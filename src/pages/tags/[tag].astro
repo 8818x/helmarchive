@@ -23,6 +23,7 @@ const t = ui[defaultLang];
 ---
 
 <Base title={tag} lang={defaultLang}>
+  <p class="kicker" data-i18n="tags">{t.tags}</p>
   <header class="tag-head" style={`--c:${tagColor(tag)}`}>
     <h1>{tag}</h1>
     <p class="tag-meta"><span>{posts.length}</span> <span data-i18n={posts.length === 1 ? 'entry' : 'entries'}>{posts.length === 1 ? t.entry : t.entries}</span></p>
@@ -37,7 +38,8 @@ const t = ui[defaultLang];
   </ul>
 </Base>
 <style>
+  /* plain h1 — the only color signal left is the count; no accent bar, the
+     archive pages stay kicker + quiet type */
   .tag-head h1 { margin-bottom: 0; }
-  .tag-head .tag-meta { color: var(--c); font-size: 0.85rem; font-weight: 600; margin: 0.25rem 0 0; }
-  .tag-head h1::after { content: ''; display: block; width: 2.5rem; height: 3px; margin-top: 0.5rem; border-radius: 2px; background: var(--c); }
+  .tag-head .tag-meta { color: var(--c); font-size: 0.85rem; margin: 0.25rem 0 0; }
 </style>

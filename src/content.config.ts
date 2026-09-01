@@ -31,7 +31,10 @@ const entities = defineCollection({
     kind: z.string().optional(),
     blurb: z.string().optional(),
     image: z.string().optional(),
-    url: z.string().url().optional(),
+    // one or more external links — label is what the hub shows; omit = "Official site".
+    // icon = any lucide name ("facebook", …), or a site path ("/img/x.png") to use an
+    // uploaded image; omit = globe.
+    urls: z.array(z.object({ label: z.string().optional(), url: z.string().url(), icon: z.string().optional() })).optional(),
   }),
 });
 

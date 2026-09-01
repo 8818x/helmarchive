@@ -19,3 +19,6 @@ skills-lock.json
 # os cruft
 .DS_Store
 Thumbs.db
+
+# local agent instructions
+CLAUDE.md
